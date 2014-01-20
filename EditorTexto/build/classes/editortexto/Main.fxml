@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="editortexto.MainController">
+  <children>
+    <TabPane fx:id="tabPane" prefHeight="378.0" prefWidth="600.0" styleClass="tabPane" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="24.0">
+      <tabs>
+        <Tab text="Sin nombre">
+          <content>
+            <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="340.0" prefWidth="600.0">
+              <children>
+                <TextArea fx:id="area" layoutX="0.0" layoutY="0.0" prefHeight="347.0" prefWidth="600.0" wrapText="true" />
+              </children>
+            </AnchorPane>
+          </content>
+        </Tab>
+      </tabs>
+    </TabPane>
+    <MenuBar fx:id="barra" minHeight="24.0" prefHeight="22.0" prefWidth="600.0" styleClass="barra" AnchorPane.bottomAnchor="378.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <menus>
+        <Menu mnemonicParsing="false" text="Archivo" fx:id="archivo">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#abrir" styleClass="itemmenu" text="Abrir" fx:id="abrir" />
+            <MenuItem mnemonicParsing="false" onAction="#guardar" styleClass="itemmenu" text="Guardar" fx:id="guardar" />
+            <MenuItem mnemonicParsing="false" onAction="#guardarComo" styleClass="itemmenu" text="Guardar como" fx:id="guardarcomo" />
+            <MenuItem mnemonicParsing="false" onAction="#abrirNuevaVentana" styleClass="itemmenu" text="Nueva Ventana" fx:id="nuevaVentana" />
+            <MenuItem mnemonicParsing="false" onAction="#cerrar" styleClass="itemmenu" text="Cerrar" fx:id="cerrar" />
+          </items>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Edicion" fx:id="edicion">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#eliminar" styleClass="itemmenu" text="Eliminar" fx:id="eliminar" />
+            <MenuItem mnemonicParsing="false" onAction="#deseleccionar" styleClass="itemmenu" text="Deseleccionar" fx:id="deseleccionar" />
+            <MenuItem mnemonicParsing="false" onAction="#seleccionarTodo" styleClass="itemmenu" text="Seleccionar todo" fx:id="seleccionarTodo" />
+            <MenuItem mnemonicParsing="false" onAction="#copiar" styleClass="itemmenu" text="Copiar" fx:id="copiar" />
+            <MenuItem mnemonicParsing="false" onAction="#pegar" styleClass="itemmenu" text="Pegar" fx:id="pegar" />
+            <MenuItem mnemonicParsing="false" onAction="#cortar" styleClass="itemmenu" text="Cortar" fx:id="cortar" />
+          </items>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Preferencias" fx:id="preferencias">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#nreproductor" text="Reproductor" fx:id="reproductor" />
+            <MenuItem mnemonicParsing="false" onAction="#fuente" styleClass="itemmenu" text="Fuente" fx:id="fuente" />
+          </items>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Ayuda" fx:id="ayuda">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#sobre" styleClass="itemmenu" text=" Sobre JavEditor" fx:id="sobre" />
+          </items>
+        </Menu>
+      </menus>
+    </MenuBar>
+  </children>
+  <stylesheets>
+    <URL value="@CSSMain.css" />
+  </stylesheets>
+</AnchorPane>
