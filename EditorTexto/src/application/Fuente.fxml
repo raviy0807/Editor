@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.collections.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="218.0" prefWidth="264.0" xmlns:fx="http://javafx.com/fxml" fx:controller="application.FuenteController">
+  <!-- TODO Add Nodes -->
+  <children>
+    <Button fx:id="fuente" layoutX="104.0" layoutY="99.0" mnemonicParsing="false" onAction="#fuente" text="Fuente" />
+    <ComboBox layoutX="97.0" layoutY="47.0" promptText="Hola">
+      <items>
+        <FXCollections fx:factory="observableArrayList">
+          <String fx:value="Item 1" />
+          <String fx:value="Item 2" />
+          <String fx:value="Item 3" />
+        </FXCollections>
+      </items>
+    </ComboBox>
+  </children>
+</AnchorPane>
