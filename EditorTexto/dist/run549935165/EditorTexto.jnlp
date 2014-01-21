@@ -11,7 +11,7 @@
   </resources>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="EditorTexto.jar" size="26734" download="eager" />
+    <jar href="EditorTexto.jar" size="26705" download="eager" />
     <jar href="lib/basicplayer3.0.jar" size="11093" download="eager" />
     <jar href="lib/commons-logging-api.jar" size="26202" download="eager" />
     <jar href="lib/jl1.0.jar" size="105446" download="eager" />

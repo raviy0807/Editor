@@ -29,7 +29,7 @@
             <MenuItem mnemonicParsing="false" onAction="#abrir" styleClass="itemmenu" text="Abrir" fx:id="abrir" />
             <MenuItem mnemonicParsing="false" onAction="#guardar" styleClass="itemmenu" text="Guardar" fx:id="guardar" />
             <MenuItem mnemonicParsing="false" onAction="#guardarComo" styleClass="itemmenu" text="Guardar como" fx:id="guardarcomo" />
-            <MenuItem mnemonicParsing="false" onAction="#abrirNuevaVentana" styleClass="itemmenu" text="Nueva Ventana" fx:id="nuevaVentana" />
+            <MenuItem mnemonicParsing="false" onAction="#abrirNuevaPestaña" styleClass="itemmenu" text="Nueva Pestaña" fx:id="nuevaVentana" />
             <MenuItem mnemonicParsing="false" onAction="#cerrar" styleClass="itemmenu" text="Cerrar" fx:id="cerrar" />
           </items>
         </Menu>
@@ -45,7 +45,7 @@
         </Menu>
         <Menu mnemonicParsing="false" text="Preferencias" fx:id="preferencias">
           <items>
-            <MenuItem mnemonicParsing="false" onAction="#nreproductor" text="Reproductor" fx:id="reproductor" />
+            <MenuItem mnemonicParsing="false" text="Reproductor" fx:id="reproductor" />
             <MenuItem mnemonicParsing="false" onAction="#fuente" styleClass="itemmenu" text="Fuente" fx:id="fuente" />
           </items>
         </Menu>

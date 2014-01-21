@@ -122,23 +122,31 @@ public class MainController implements Initializable {
         
        
         private FileChooser chooser;
-     
-        private String archivoActual;
+        private ArrayList<String> pathArchivoActual = new ArrayList<String>();
+        private String archivoUtilizando;
         private String archivoGuardado;
-        private int numeroTab=0;
         private String seleccion;
-        private StringBuilder nombreArea = new StringBuilder("area");
         public ArrayList<TextArea> areas = new ArrayList<TextArea>();
-        public ArrayList<Tab> tabs = new ArrayList<Tab>();
         public TextArea areaAUtilizar = new TextArea();
+        public ArrayList<Tab> tabs = new ArrayList<Tab>();
+        private int numeroTab=0;
+        
        
       
-   
+    /** cerrar()
+     * 
+     * Cierra el programa
+     */
     @FXML 
     private void cerrar(){
         System.exit(0);
     }
     
+    
+    /** abrir()
+     * 
+     * 
+     */
     @FXML
     private void abrir(){
         
@@ -169,13 +177,11 @@ public class MainController implements Initializable {
         chooser.getExtensionFilters().add(css);
         chooser.getExtensionFilters().add(php);
         
-        tabear();
-	
         chooser.setInitialDirectory(new File("C:\\Users\\Usuario\\Desktop"));
         File f = chooser.showOpenDialog(null);
             
             try{
-                
+                seleccionarArea();
                 areaAUtilizar.setText("");
                
                 if(f.getName().endsWith(".txt")){//Si el archivo f acaba en .txt
@@ -186,8 +192,8 @@ public class MainController implements Initializable {
                 }else if(f.getName().endsWith(".html")){
                     
                 }
-             
-                archivoActual = f.getAbsolutePath();
+                
+                actualizarArchivo(f.getAbsolutePath(),f.getName());
                 FileReader fr = new FileReader(f);
                 BufferedReader br = new BufferedReader(fr);
                 
@@ -204,32 +210,38 @@ public class MainController implements Initializable {
         
     }
     
+    /** guardar()
+     * 
+     * 
+     */
     @FXML 
     private void guardar(){
         
-        /*Tengo que obtener el nombre del archivo en el que estoy
-         */
-        if(archivoGuardado==null && archivoActual==null){
+        busquedaArchivo();
+        if(archivoGuardado==null && archivoUtilizando==null){
             guardarComo();
         }else{
-            File f = new File(archivoActual) ;
-        
-        try{
+            File f = new File(archivoUtilizando) ;
+            try{
             
-            FileWriter fw = new FileWriter(f);
-            BufferedWriter bw = new BufferedWriter(fw);
-            tabear();
-            String texto = areaAUtilizar.getText();
-            bw.write(texto);
-            bw.close();
-            fw.close();
+                FileWriter fw = new FileWriter(f);
+                BufferedWriter bw = new BufferedWriter(fw);
+                seleccionarArea();
+                String texto = areaAUtilizar.getText();
+                bw.write(texto);
+                bw.close();
+                fw.close();
             
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(null,"Erro: No se puedo guardar el archivo");
-        }
+            }catch(Exception e){
+                JOptionPane.showMessageDialog(null,"Erro: No se puedo guardar el archivo");
+            }
         }
     }
     
+    /** guardarComo()
+     * 
+     * 
+     */
     @FXML
     private void guardarComo(){
         
@@ -264,73 +276,119 @@ public class MainController implements Initializable {
         chooser.setInitialDirectory(new File("C:\\Users\\Usuario\\Desktop"));
         File f = chooser.showSaveDialog(null);
         
-         try{
+        try{
             f = new File(f.getAbsoluteFile() + ".txt");
             archivoGuardado = f.getAbsolutePath();
-            archivoActual=archivoGuardado;
+            actualizarArchivo(archivoGuardado, f.getName());
             chooser.getExtensionFilters();
             FileWriter fw = new FileWriter(f);
             BufferedWriter bw = new BufferedWriter(fw);
-            tabear();
+            seleccionarArea();
             String texto = areaAUtilizar.getText(); 
             bw.write(texto);
             bw.close();
             fw.close();
            
-            
         }catch(Exception e){
             JOptionPane.showMessageDialog(null,"Error: No se puedo guardar el archivo");
         }
     }
+    
+    /** deshacer()
+     * 
+     * Si hemos escrito algo, lo borra todo. Tenemos dos variables en las que guardar
+     * las acciones anteriores, ideas un modo de deshacer distinto al de 
+     * bloc de notas, no me gusta. Deseleccionar con este boton
+     * no tiene mucho sentido habiendo un deseleccionar
+     * 
+     */
     @FXML
     private void deshacer(){
-        /*
-         * Si hemos escrito algo, lo borra todo. Tener dos variables en las que guardar
-         * las acciones anteriores, ideas un modo de deshacer distinto al de 
-         * bloc de notas, no me gusta. Deseleccionar con este boton
-         * no tiene mucho sentido habiendo un deseleccionar
-         * 
-         */
+        
         seleccion=area.getSelectedText();
         if(!seleccion.isEmpty()){
             deseleccionar();
         }
     }
+    
+    /** seleccionarTodo()
+     * 
+     * Selecciona todo el texto escrito
+     */
     @FXML
     private void seleccionarTodo(){
-        tabear();
+        
+        seleccionarArea();
         areaAUtilizar.selectAll();
     }
+    
+    /** deseleccionar()
+     * 
+     * Deselecciona lo seleccionado
+     */
     @FXML
     private void deseleccionar(){
-        tabear();
+        
+        seleccionarArea();
         areaAUtilizar.deselect();
     }
+    
+    /** eliminar()
+     * 
+     * Elimina lo seleccionado
+     */
     @FXML
     private void eliminar(){
-        tabear();
+        
+        seleccionarArea();
         areaAUtilizar.cut();
     }
+    
+    /** copiar()
+     * 
+     * Copia lo seleccionado almacenandolo en una variable 
+     */
     @FXML
     private void copiar(){
-        tabear();
+        
+        seleccionarArea();
         seleccion = areaAUtilizar.getSelectedText();
     }
+    
+    /** pegar()
+     * 
+     * Pega lo almacenado en la variable seleccion, lo que ha sido copiado
+     * o cortado
+     */
     @FXML
     private void pegar(){
-        tabear();
+        
+        seleccionarArea();
         areaAUtilizar.appendText(seleccion);
     }
+    
+    /** cortar()
+     * 
+     * Corta lo seleccionado, y lo almacena en la variable seleccion 
+     * para su posterior pegado
+     */
     @FXML
     private void cortar(){
-        tabear();
+        
+        seleccionarArea();
         seleccion = areaAUtilizar.getSelectedText();
         areaAUtilizar.cut();
     }
+    
+    /** sobre()
+     * 
+     * Abrea una nueva ventana, con información sobre la aplicación. 
+     */
     @FXML
     private void sobre(){
+        
         try{
-            Stage stage= new Stage();
+        Stage stage= new Stage();
         Parent root = FXMLLoader.load(getClass().getResource("About.fxml"));
         
         Scene scene = new Scene(root);
@@ -339,14 +397,19 @@ public class MainController implements Initializable {
         stage.setHeight(150);
         stage.show();
         
-        
-        
         }catch(Exception e){}
     }
+    
+    /** fuente()
+     * 
+     * Abre una nueva ventana para editar la fuente, el color y demás características
+     * de las letras.
+     */
     @FXML
     private void fuente(){
+        
         try{
-            Stage stage= new Stage();
+        Stage stage= new Stage();
         Parent root = FXMLLoader.load(getClass().getResource("Fuente.fxml"));
         
         Scene scene = new Scene(root);
@@ -355,18 +418,19 @@ public class MainController implements Initializable {
         stage.setHeight(150);
         stage.show();
         
-        
-        
         }catch(Exception e){}
         
     }
-    /*
+    
+    /** abrirNuevaPestañaa()
+     * 
      * Crea un text area añadiendolo a la lista areas
      * y un nuevo tab añadiendolo a la lista tabs , colocando el nuevo
-     * textarea en el nuevo tab.
+     * textarea en el nuevo tab. Es decir creamos una nueva pestaña de edición de
+     * texto.
      */
     @FXML
-    private void abrirNuevaVentana(){
+    private void abrirNuevaPestaña(){
         
       
         box = new VBox();
@@ -390,23 +454,31 @@ public class MainController implements Initializable {
         tabPane.getTabs().add(tabs.get(numeroTab));
         numeroTab++;
         
+        //Inicializamos la posición de la dirección del archivo actual en funcion del tab a vacío
+        //para después hacer un set y cambiar la dirección en el caso de que guardemos una nueva
+        //dirección o abramos otro archivo ya que con el add desplazamos en vez de reemplazar.
+        //Lo que alteraría el orden de las direcciones con los tabs
+        pathArchivoActual.add(numeroTab," ");
+        
         
         
         
     }
     @FXML
     private void aplicar(){
-        tabear();
+        seleccionarArea();
         areaAUtilizar.setText("Funcionaaaaaa");
     }
-    /*
+    
+    /** seleccionarArea()
+     * 
      * Comprueba que tab esta seleccionado de los que es posible crear. Si no esta
      * seleccionado ninguno o no hay, el area que esta seleccionada es el area de la
      * primera ventana, la principal.
      */
-    public void tabear(){
+    public void seleccionarArea(){
         boolean hay = false;
-        if(tabs.size()>0){ 
+        if(tabs.size()>0){
             for(int i=0;i<tabs.size();i++){
                 if(tabs.get(i).isSelected()){
                     areaAUtilizar = areas.get(i);
@@ -416,26 +488,69 @@ public class MainController implements Initializable {
             }
         }
         if(!hay){
-        areaAUtilizar = area;
+           areaAUtilizar = area;
         }
         
     }
-    @FXML
-    private void nreproductor(){
-        
-        
+    
+    /** actualizarArchivo()
+     * 
+     * @param direccion
+     * @param archivo
+     * 
+     * Actualiza el archivo que acabamos de abrir o guardar, 
+     * almacenando la dirección de dicho archivo para luego poder guardarla
+     * en un ArrayList. Tabién cambiamos el nombre del tab poniendo
+     * el nombre del archivo en cuestión
+     */
+    private void actualizarArchivo(String direccion, String archivo){
+        boolean noseleccionado = false;
+        for(int i=0;i<tabs.size();i++){
+            if(tabs.get(i).isSelected()){
+                noseleccionado = true;
+                pathArchivoActual.set(i+1,direccion);
+                tabs.get(i).setText(archivo);
+            }
+        }
+        if(!noseleccionado){
+            pathArchivoActual.set(0,direccion);
+            //tab1.setText(archivo);
+        }
     }
-        
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
+    
+    /** busquedaArchivo()
+     * 
+     * Buscamos la dirección del archivo en la que nos encontramos dependiendo
+     * del tab o area que se encuentra seleccionada, es decir, en la que estamos
+     * posicionados
+     */
+    private void busquedaArchivo(){
+        boolean hay = false;
+          for(int i=0;i<tabs.size();i++){
+            if(tabs.get(i).isSelected()){
+                hay = true;
+                if(pathArchivoActual.get(i+1)!=null){
+                    archivoUtilizando = pathArchivoActual.get(i+1);
+                }
+            }
+        }
+         if(!hay){
+             archivoUtilizando = pathArchivoActual.get(0);
+         }
+    }
+    
     
      
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        //Coloco la dirección vacio de archivo en la primera posición , ya que el primer tab esta 
+        //esta predeterminado. Para hacer el set citado antes.
+        pathArchivoActual.add(0," ");
          
     }
   
     
      public static void main(String[] args){
-         
          
          
      } 
