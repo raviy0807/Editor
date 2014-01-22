@@ -11,11 +11,11 @@
   </resources>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="JavEditor.jar" size="37177" download="eager" />
+    <jar href="JavEditor.jar" size="37219" download="eager" />
   </resources>
   <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="JavEditor" >
     <param name="requiredFXVersion" value="2.2+"/>
   </applet-desc>
-  <jfx:javafx-desc  width="800" height="600" main-class="javafxapplication4.JavaFXApplication4"  name="JavEditor" />
+  <jfx:javafx-desc  width="800" height="600" main-class="JavEditor.JavEditor"  name="JavEditor" />
   <update check="always"/>
 </jnlp>

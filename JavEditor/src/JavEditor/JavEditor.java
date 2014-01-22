@@ -41,44 +41,46 @@ import javax.swing.JOptionPane;
  */
 public class JavEditor extends Application {
     
-        private AnchorPane root;
-	private MenuBar barra;
-        private VBox box;
-        private TabPane tabPane;
-        private Tab tab1;
-	public TextArea area;
-	private Menu archivo;
-	private Menu edicion;
-	private Menu ayuda;
-	private Menu preferencias;
-	private MenuItem abrir;
-        private MenuItem nuevaVentana;
-	private MenuItem guardar;
-	private MenuItem guardarcomo;
-	private MenuItem cerrar;
-	private MenuItem deshacer;
-        private MenuItem copiar;
-        private MenuItem pegar;
-        private MenuItem cortar;
-        private MenuItem eliminar;
-        private MenuItem seleccionarTodo;
-        private MenuItem deseleccionar;
-	private MenuItem fuente;
-        private MenuItem sobre;
-        private ColorPicker colores;
-        private ChoiceBox tipoLetras;
-        private Button aplicar;
+    private AnchorPane root;
+	  private MenuBar barra;
+    private VBox box;
+    private TabPane tabPane;
+    private Tab tab1;
+	  public TextArea area;
+	  private Menu archivo;
+	  private Menu edicion;
+	  private Menu ayuda;
+	  private Menu preferencias;
+	  private MenuItem abrir;
+    private MenuItem nuevaVentana;
+	  private MenuItem guardar;
+	  private MenuItem guardarcomo;
+	  private MenuItem cerrar;
+	  private MenuItem deshacer;
+    private MenuItem copiar;
+    private MenuItem pegar;
+    private MenuItem cortar;
+    private MenuItem eliminar;
+    private MenuItem seleccionarTodo;
+    private MenuItem deseleccionar;
+	  private MenuItem fuente;
+    private MenuItem sobre;
+    private ColorPicker colores;
+    private ChoiceBox tipoLetras;
+    private Button aplicar;
        
-       
-        private FileChooser chooser;
-        private ArrayList<String> pathArchivoActual = new ArrayList<String>();
-        private String archivoUtilizando;
-        private String archivoGuardado;
-        private String seleccion;
-        public ArrayList<TextArea> areas = new ArrayList<TextArea>();
-        public TextArea areaAUtilizar = new TextArea();
-        public ArrayList<Tab> tabs = new ArrayList<Tab>();
-        private int numeroTab=0;
+    //Variables para el correcto funcionamiento del programa
+
+    private FileChooser chooser;
+    private ArrayList<String> pathArchivoActual = new ArrayList<String>();
+    private String archivoUtilizando;
+    private String archivoGuardado;
+    private String seleccion;
+    public ArrayList<TextArea> areas = new ArrayList<TextArea>();
+    public TextArea areaAUtilizar = new TextArea();
+    public ArrayList<Tab> tabs = new ArrayList<Tab>();
+    private int numeroTab=0;
+    private boolean primertab=false;
     
     @Override
     public void start(Stage primaryStage) {
@@ -86,6 +88,17 @@ public class JavEditor extends Application {
         
        Point3D punto = new Point3D(0,0,1);
        root = new AnchorPane();
+       root.autosize();
+       root.setMaxHeight(AnchorPane.USE_COMPUTED_SIZE);
+       root.setMaxWidth(AnchorPane.USE_COMPUTED_SIZE);
+       root.setMinHeight(AnchorPane.USE_COMPUTED_SIZE);
+       root.setMinWidth(AnchorPane.USE_COMPUTED_SIZE);
+       root.setPrefHeight(400);
+       root.setPrefWidth(600);
+       root.setScaleX(1);
+       root.setScaleY(1);
+       root.setScaleZ(1);
+       root.setRotationAxis(punto);
        barra = new MenuBar();
        barra.autosize();
        barra.setMaxHeight(MenuBar.USE_COMPUTED_SIZE);
@@ -225,21 +238,51 @@ public class JavEditor extends Application {
                tabNuevo.setOnClosed(new EventHandler<Event>(){
                 @Override
                 public void handle(Event t){
-                    System.out.println("Esto es una prueba");
+                    
+                   
+                    for(int i=0;i<tabs.size();i++){
+                        if(tabs.get(i)!=t.getSource()){
+                            continue;
+                            
+                        }else{
+                            if(primertab){
+                              pathArchivoActual.remove(i);
+                            }else{
+                              pathArchivoActual.remove(i+1);
+                            }
+                            areas.remove(i);
+                            tabs.remove(i);
+                            numeroTab--;
+                             System.out.println(areas.size());
+                             System.out.println(numeroTab);
+                            break;
+                            
+                        }   
+                    }
+                    
+                        
+                    
                 }
         
-        });
+              });
         tabs.add(numeroTab, tabNuevo);
         tabs.get(numeroTab).setClosable(true);
         tabs.get(numeroTab).setContent(box);
-        tabPane.getTabs().add(tabs.get(numeroTab));
-        numeroTab++;
+        if(primertab){
+          tabPane.getTabs().add(numeroTab,tabs.get(numeroTab));
+        }else{
+          tabPane.getTabs().add(numeroTab+1,tabs.get(numeroTab));
+          numeroTab++;
+        }      
+        
         
         //Inicializamos la posición de la dirección del archivo actual en funcion del tab a vacío
         //para después hacer un set y cambiar la dirección en el caso de que guardemos una nueva
         //dirección o abramos otro archivo ya que con el add desplazamos en vez de reemplazar.
         //Lo que alteraría el orden de las direcciones con los tabs
         pathArchivoActual.add(numeroTab," ");
+        if(primertab){
+        numeroTab++;}
         
            }
        });
@@ -330,6 +373,7 @@ public class JavEditor extends Application {
        barra.getMenus().addAll(archivo,edicion,preferencias,ayuda);
        
        tabPane = new TabPane();
+       tabPane.autosize();
        tabPane.setLayoutX(0);
        tabPane.setLayoutY(24);
        tabPane.setMaxHeight(TabPane.USE_COMPUTED_SIZE);
@@ -344,6 +388,14 @@ public class JavEditor extends Application {
        tabPane.setRotationAxis(punto);
        
        tab1 = new Tab("Sin título");
+       tab1.setOnClosed(new EventHandler<Event>(){
+           @Override
+           public void handle(Event t){
+               System.out.println("Pasa por aqui");
+               primertab=true;
+               pathArchivoActual.remove(0);
+           }
+       });
        box = new VBox();
        area = new TextArea();
        area.setPrefHeight(800);
@@ -382,7 +434,7 @@ public class JavEditor extends Application {
         FileChooser.ExtensionFilter todos = new FileChooser.ExtensionFilter("Todos los archivos", lista);
         FileChooser.ExtensionFilter txt = new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt");
         FileChooser.ExtensionFilter xml = new FileChooser.ExtensionFilter("XML (*.xml)", "*.xml");
-	    FileChooser.ExtensionFilter html = new FileChooser.ExtensionFilter("HTML (*.html)", "*.html");
+	      FileChooser.ExtensionFilter html = new FileChooser.ExtensionFilter("HTML (*.html)", "*.html");
         FileChooser.ExtensionFilter js = new FileChooser.ExtensionFilter("JavaScript (*.js)","*.js");
         FileChooser.ExtensionFilter css = new FileChooser.ExtensionFilter("CSS (*.css)","*.css");
         FileChooser.ExtensionFilter php = new FileChooser.ExtensionFilter("PHP (*.php)","*.php");
@@ -454,7 +506,11 @@ public class JavEditor extends Application {
         for(int i=0;i<tabs.size();i++){
             if(tabs.get(i).isSelected()){
                 noseleccionado = true;
-                pathArchivoActual.set(i+1,direccion);
+                if(primertab){
+                    pathArchivoActual.set(i,direccion);
+                }else{
+                    pathArchivoActual.set(i+1,direccion);
+                }
                 tabs.get(i).setText(archivo);
             }
         }
@@ -475,8 +531,14 @@ public class JavEditor extends Application {
           for(int i=0;i<tabs.size();i++){
             if(tabs.get(i).isSelected()){
                 hay = true;
-                if(pathArchivoActual.get(i+1)!=null){
-                    archivoUtilizando = pathArchivoActual.get(i+1);
+                if(primertab){
+                    if(pathArchivoActual.get(i)!=null){
+                        archivoUtilizando = pathArchivoActual.get(i);
+                    }
+                }else{
+                    if(pathArchivoActual.get(i+1)!=null){
+                        archivoUtilizando = pathArchivoActual.get(i+1);
+                    }
                 }
             }
         }
@@ -485,6 +547,11 @@ public class JavEditor extends Application {
          }
     }
     
+    /** deseleccionar()
+    *
+    * Deselecciona el texto anteriormente seleccionado
+    */
+
     private void deseleccionar(){
         seleccionarArea();
         areaAUtilizar.deselect();
