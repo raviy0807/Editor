@@ -15,21 +15,18 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point3D;
 import javafx.event.Event;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -42,36 +39,39 @@ import javax.swing.JOptionPane;
 public class JavEditor extends Application {
     
     private AnchorPane root;
-	  private MenuBar barra;
+    private MenuBar barra;
     private VBox box;
     private TabPane tabPane;
     private Tab tab1;
-	  public TextArea area;
-	  private Menu archivo;
-	  private Menu edicion;
-	  private Menu ayuda;
-	  private Menu preferencias;
-	  private MenuItem abrir;
-    private MenuItem nuevaVentana;
-	  private MenuItem guardar;
-	  private MenuItem guardarcomo;
-	  private MenuItem cerrar;
-	  private MenuItem deshacer;
+    public TextArea area;
+    private Menu archivo;
+    private Menu edicion;
+    private Menu ayuda;
+    private Menu preferencias;
+    private MenuItem abrir;
+    private MenuItem nuevaPestaña;
+    private MenuItem guardar;
+    private MenuItem guardarcomo;
+    private MenuItem cerrarArchivo;
+    private MenuItem cerrarTodo;
+    private MenuItem cerrar;
+    private MenuItem deshacer;
     private MenuItem copiar;
     private MenuItem pegar;
     private MenuItem cortar;
     private MenuItem eliminar;
     private MenuItem seleccionarTodo;
     private MenuItem deseleccionar;
-	  private MenuItem fuente;
+    private MenuItem fuente;
     private MenuItem sobre;
-    private ColorPicker colores;
-    private ChoiceBox tipoLetras;
+    //private ColorPicker colores;
+    //private ChoiceBox tipoLetras;
     private Button aplicar;
-       
+    
+    
     //Variables para el correcto funcionamiento del programa
 
-    private FileChooser chooser;
+    private OwnFileChooser chooser;
     private ArrayList<String> pathArchivoActual = new ArrayList<String>();
     private String archivoUtilizando;
     private String archivoGuardado;
@@ -81,12 +81,27 @@ public class JavEditor extends Application {
     public ArrayList<Tab> tabs = new ArrayList<Tab>();
     private int numeroTab=0;
     private boolean primertab=false;
+    private SeparatorMenuItem [] separate = new SeparatorMenuItem[10];
+    private ArrayList<KeyCode> codigoTeclas = new ArrayList<KeyCode>();
+    
+    FileChooser h = new FileChooser();
+    
+   
     
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) { 
+       
+      //Inicializo la posición cero de las direcciones de archivos a vacio(explicado mas abajo). Esta
+       //corresponde al area que se crea por defecto
        pathArchivoActual.add(0," ");
+       
+       for(int i =0;i<separate.length;i++){
+           separate[i] = new SeparatorMenuItem();
+       }
         
        Point3D punto = new Point3D(0,0,1);
+
+       //Panel que contiene todos los demás contenidos
        root = new AnchorPane();
        root.autosize();
        root.setMaxHeight(AnchorPane.USE_COMPUTED_SIZE);
@@ -99,6 +114,8 @@ public class JavEditor extends Application {
        root.setScaleY(1);
        root.setScaleZ(1);
        root.setRotationAxis(punto);
+
+       //Barra principal con las pestañas de los menús
        barra = new MenuBar();
        barra.autosize();
        barra.setMaxHeight(MenuBar.USE_COMPUTED_SIZE);
@@ -111,42 +128,42 @@ public class JavEditor extends Application {
        barra.setScaleY(1);
        barra.setScaleZ(1);
        barra.setRotationAxis(punto);
+       
+       //Menús
        archivo = new Menu("Archivo");
-       abrir = new MenuItem("Abrir");
+
+       //Submenús del menú "Archivo"
+       abrir = new MenuItem("Abrir                                            Ctrl+O");
+
+       /**
+       * Abre un archivo y escribe el texto de dicho archivo en el area correspondiente
+       * al tab seleccionado.
+       */
        abrir.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
-               chooser = new FileChooser();
-               chooser.setTitle("Abrir");
+               chooser = new OwnFileChooser();
         
                String[] extensiones = {"*.txt","*.html","*.xml","*.js","*.php","*.css","*.java","*.c"}; 
         
-            ArrayList<String> lista = new ArrayList<String>();
+               ArrayList<String> lista = new ArrayList<String>();
         
-            for (int i =0;i<extensiones.length;i++){
-                lista.add(extensiones[i]);
-            }
+               for(int i =0;i<extensiones.length;i++){
+                  lista.add(extensiones[i]);
+               }
         
-            FileChooser.ExtensionFilter todos = new FileChooser.ExtensionFilter("Todos los archivos", lista);
-            FileChooser.ExtensionFilter txt = new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt");
-            FileChooser.ExtensionFilter xml = new FileChooser.ExtensionFilter("XML (*.xml)", "*.xml");
-            FileChooser.ExtensionFilter html = new FileChooser.ExtensionFilter("HTML (*.html)", "*.html");
-            FileChooser.ExtensionFilter js = new FileChooser.ExtensionFilter("JavaScript (*.js)","*.js");
-            FileChooser.ExtensionFilter css = new FileChooser.ExtensionFilter("CSS (*.css)","*.css");
-            FileChooser.ExtensionFilter php = new FileChooser.ExtensionFilter("PHP (*.php)","*.php");
-        
-            chooser.getExtensionFilters().add(todos);
-            chooser.getExtensionFilters().add(txt);
-            chooser.getExtensionFilters().add(xml);
-            chooser.getExtensionFilters().add(html);
-            chooser.getExtensionFilters().add(js);
-            chooser.getExtensionFilters().add(css);
-            chooser.getExtensionFilters().add(php);
-        
-            chooser.setInitialDirectory(new File("C:\\Users\\Usuario\\Desktop"));
-            File f = chooser.showOpenDialog(null);
+               FileChooser.ExtensionFilter todos = new FileChooser.ExtensionFilter("Todos los archivos", lista);
+               //FileChooser.ExtensionFilter txt = new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt");
+               FileChooser.ExtensionFilter xml = new FileChooser.ExtensionFilter("XML (*.xml)", "*.xml");
+               FileChooser.ExtensionFilter html = new FileChooser.ExtensionFilter("HTML (*.html)", "*.html");
+               FileChooser.ExtensionFilter js = new FileChooser.ExtensionFilter("JavaScript (*.js)","*.js");
+               FileChooser.ExtensionFilter css = new FileChooser.ExtensionFilter("CSS (*.css)","*.css");
+               FileChooser.ExtensionFilter php = new FileChooser.ExtensionFilter("PHP (*.php)","*.php");
+               
+               chooser.setInitialDirectory(new File("C:\\Users\\Usuario\\Desktop"));
+               File f = chooser.ownShowOpenDialog();
             
-            try{
+               try{
                 seleccionarArea();
                 areaAUtilizar.setText("");
                
@@ -168,16 +185,18 @@ public class JavEditor extends Application {
                     areaAUtilizar.appendText(parte + "\n");
                 }
                 
-            }catch(Exception e){
-               JOptionPane.showMessageDialog(null,"Error: No se ha podido abrir el archivo");
-            }
-            
-        
-               
+               }catch(Exception e){
+                  JOptionPane.showMessageDialog(null,"Error: No se ha podido abrir el archivo");
+               }    
            }
        });
-       
-       guardar = new MenuItem("Guardar");
+
+       /**
+       * Guarda un archivo, en el caso de que el archivo haya sido abierto y ya existiese, se guardará en
+       * la dirección que le corresponda, en el caso de que no existiese se llamará a la función guardarComo
+       * guardandose en la dirección que se le indique.
+       */
+       guardar = new MenuItem("Guardar                                       Ctrl+S");
        guardar.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
@@ -197,18 +216,27 @@ public class JavEditor extends Application {
                         fw.close();
             
                     }catch(Exception e){
-                        JOptionPane.showMessageDialog(null,"Erro: No se puedo guardar el archivo");
+                        JOptionPane.showMessageDialog(null,"Error: No se puedo guardar el archivo");
                     }
                 }
            }
        });
-       guardarcomo = new MenuItem("Guardar Como...");
+
+       /**
+       * Guarda un archivo en una dirección determinada, ya estuviese o no creado el archivo
+       */
+       guardarcomo = new MenuItem("Guardar Como...                          Ctrl+G");
+       //guardarcomo.setStyle("-fx-font-size:60pt;");
        guardarcomo.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
                guardarComo();
            }
        });
+
+       /**
+       *  Cierra el programa JavEditor
+       */
        cerrar = new MenuItem("Cerrar");
        cerrar.setOnAction(new EventHandler<ActionEvent>(){
            @Override
@@ -216,79 +244,63 @@ public class JavEditor extends Application {
                System.exit(0);
            }
        });
-       nuevaVentana = new MenuItem("Nuevo Archivo");
-       nuevaVentana.setOnAction(new EventHandler<ActionEvent>(){
+
+       /**
+       *  Abre una nueva pestaña para crear un nuevo archivo
+       */
+       nuevaPestaña = new MenuItem("Nuevo Archivo                            Ctrl+N");
+       nuevaPestaña.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
-               box = new VBox();
-        
-               TextArea areaNueva = new TextArea();
-               areas.add(numeroTab, areaNueva);
-               areas.get(numeroTab).setPrefHeight(800);
-               areas.get(numeroTab).setPrefWidth(600);
-               areas.get(numeroTab).setMinHeight(TextArea.USE_COMPUTED_SIZE);
-               areas.get(numeroTab).setMaxHeight(TextArea.USE_COMPUTED_SIZE);
-               areas.get(numeroTab).setMaxWidth(TextArea.USE_COMPUTED_SIZE);
-               areas.get(numeroTab).setMinWidth(TextArea.USE_COMPUTED_SIZE);
-               areas.get(numeroTab).setStyle("-fx-font:13pt \"Lucida Console\";");
-        
-        
-               box.getChildren().add(areaNueva);
-               Tab tabNuevo = new Tab("Sin Titulo");
-               tabNuevo.setOnClosed(new EventHandler<Event>(){
-                @Override
-                public void handle(Event t){
-                    
-                   
-                    for(int i=0;i<tabs.size();i++){
-                        if(tabs.get(i)!=t.getSource()){
-                            continue;
-                            
+               nuevaPestaña();
+           }
+       });
+       
+       cerrarArchivo = new MenuItem("Cerrar Archivo                             Ctrl+A");
+       cerrarArchivo.setOnAction(new EventHandler<ActionEvent>(){
+           @Override
+           public void handle(ActionEvent t){
+               boolean noestab = false;
+                for(int i=0;i<tabs.size();i++){
+                       if(!tabs.get(i).isSelected()){
+                            continue;  
                         }else{
+                           noestab= true;
                             if(primertab){
                               pathArchivoActual.remove(i);
+                              tabPane.getTabs().remove(i);
                             }else{
                               pathArchivoActual.remove(i+1);
+                              tabPane.getTabs().remove(i+1);
                             }
+                            
                             areas.remove(i);
                             tabs.remove(i);
                             numeroTab--;
-                             System.out.println(areas.size());
-                             System.out.println(numeroTab);
-                            break;
-                            
+                            break;   
                         }   
-                    }
-                    
-                        
-                    
+                    } 
+                  if(!noestab){
+                      pathArchivoActual.remove(0);
+                      tabPane.getTabs().remove(0);
+                      primertab=true;
                 }
-        
-              });
-        tabs.add(numeroTab, tabNuevo);
-        tabs.get(numeroTab).setClosable(true);
-        tabs.get(numeroTab).setContent(box);
-        if(primertab){
-          tabPane.getTabs().add(numeroTab,tabs.get(numeroTab));
-        }else{
-          tabPane.getTabs().add(numeroTab+1,tabs.get(numeroTab));
-          numeroTab++;
-        }      
-        
-        
-        //Inicializamos la posición de la dirección del archivo actual en funcion del tab a vacío
-        //para después hacer un set y cambiar la dirección en el caso de que guardemos una nueva
-        //dirección o abramos otro archivo ya que con el add desplazamos en vez de reemplazar.
-        //Lo que alteraría el orden de las direcciones con los tabs
-        pathArchivoActual.add(numeroTab," ");
-        if(primertab){
-        numeroTab++;}
-        
-           }
+         
+           
+            }
        });
-       archivo.getItems().addAll(nuevaVentana,abrir,guardar,guardarcomo,cerrar);
+       
+       cerrarTodo = new MenuItem("Cerrar Todo                                 Ctrl+Q");
+       cerrarTodo.setOnAction(null);
+       archivo.getItems().addAll(nuevaPestaña,separate[0],abrir,guardar,guardarcomo,separate[1],cerrarArchivo,cerrarTodo,separate[2],cerrar);
        edicion = new Menu("Edición");
-       deshacer = new MenuItem("Deshacer");
+       
+       //Submenús de "Edición"
+       deshacer = new MenuItem("Deshacer                                          Ctrl+Z");
+
+       /*
+       *  Deshace la acción previa hecha
+       */
        deshacer.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
@@ -298,7 +310,12 @@ public class JavEditor extends Application {
                 }
            }
        });
-       seleccionarTodo = new MenuItem("Seleccionar Todo");
+
+       seleccionarTodo = new MenuItem("Seleccionar Todo                              Ctrl+T");
+
+       /*
+       *  Selecciona todo el texto del area del tab en el que se encuentra en el momento
+       */
        seleccionarTodo.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
@@ -306,14 +323,23 @@ public class JavEditor extends Application {
                 areaAUtilizar.selectAll();
            }
        });
+
        deseleccionar = new MenuItem("Deseleccionar");
+       /*
+       *  Deselecciona lo seleccionado previamente
+       */
        deseleccionar.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
                 deseleccionar();
            }
        });
-       cortar = new MenuItem("Cortar");
+
+       cortar = new MenuItem("Cortar                                               Ctrl+X");
+       /*
+       *  Corta lo seleccionado, elimina de la pantalla lo seleccionado, almacenandolo en la variable seleccion
+       * para su posible posterior pegado
+       */
        cortar.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
@@ -322,7 +348,12 @@ public class JavEditor extends Application {
                areaAUtilizar.cut();
            }
        });
-       copiar = new MenuItem("Copiar");
+
+       copiar = new MenuItem("Copiar                                              Ctrl+C");
+       /**
+       *  Copia lo seleccionado, almacena dicha selección en la variable seleccion para su posible posterior
+       * pegado
+       */
        copiar.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
@@ -330,7 +361,11 @@ public class JavEditor extends Application {
                 seleccion = areaAUtilizar.getSelectedText();
            }
        });
-       pegar = new MenuItem("Pegar");
+
+       pegar = new MenuItem("Pegar                                                Ctrl+V");
+       /*
+       * Añade al texto del area del tab seleccionado lo que se encuentra en la variable selección.
+       */
        pegar.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
@@ -339,7 +374,11 @@ public class JavEditor extends Application {
              
            }
        });
+
        eliminar = new MenuItem("Eliminar");
+       /*
+       *  Elimina lo seleccionado, a diferencia de cortar, este no guarda el texto en ninguna variable.
+       */
        eliminar.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
@@ -347,31 +386,41 @@ public class JavEditor extends Application {
                 areaAUtilizar.cut();
            }
        });
-       edicion.getItems().addAll(deshacer,copiar,cortar,pegar,seleccionarTodo,eliminar);
+
+       edicion.getItems().addAll(deshacer,separate[3],copiar,cortar,pegar,eliminar,separate[4],seleccionarTodo);
        ayuda = new Menu("Ayuda");
+       
+       //Submenús de "Ayuda"
        sobre = new MenuItem("Sobre JavEditor");
+       
+       /*
+       * Abre una nueva ventana donde se da información de JavEditor
+       */
        sobre.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
                try{
-            Stage stage= new Stage();
-            Parent root = FXMLLoader.load(getClass().getResource("About.fxml"));
+                Stage stage= new Stage();
+                //Parent root = FXMLLoader.load(getClass().getResource("About.fxml"));
         
-            Scene scene = new Scene(root);
-            stage.setScene(scene);
-            stage.setWidth(250);
-            stage.setHeight(150);
-            stage.show();
-        
-            }catch(Exception e){}
-           }
+                Scene scene = new Scene(root);
+                stage.setScene(scene);
+                stage.setWidth(250);
+                stage.setHeight(150);
+                stage.show();  
+                }catch(Exception e){}
+            }
        });
-       preferencias = new Menu("Preferencias");
+
        ayuda.getItems().addAll(sobre);
+       preferencias = new Menu("Preferencias");
+       
+       //SubMenús de "Preferencias"
        fuente = new MenuItem("Fuente");
        preferencias.getItems().addAll(fuente);
        barra.getMenus().addAll(archivo,edicion,preferencias,ayuda);
        
+       //Panel central que contiene tanto las distintas pestañas como sus areas.
        tabPane = new TabPane();
        tabPane.autosize();
        tabPane.setLayoutX(0);
@@ -387,16 +436,22 @@ public class JavEditor extends Application {
        tabPane.setScaleZ(1);
        tabPane.setRotationAxis(punto);
        
+       //Tab que viene predeterminado
        tab1 = new Tab("Sin título");
+       /**
+       * Cuando se cierra este tab se elimina la dirección del archivo que tenga abierto y se pone a true
+       * la variable primertab para condiciones necesarias de otras funciones
+       */
        tab1.setOnClosed(new EventHandler<Event>(){
            @Override
            public void handle(Event t){
-               System.out.println("Pasa por aqui");
                primertab=true;
                pathArchivoActual.remove(0);
            }
        });
-       box = new VBox();
+
+       //Se crea un nuevo area predeterminado el cual se introduce en el primer tab creado y este se añade al
+       //panel de tabs
        area = new TextArea();
        area.setPrefHeight(800);
        area.setPrefWidth(600);
@@ -408,20 +463,35 @@ public class JavEditor extends Application {
        tab1.setContent(area);
        tabPane.getTabs().add(tab1);
        
+       root.setOnKeyPressed( new EventHandler<KeyEvent>(){
+           @Override
+           public void handle(KeyEvent event){
+                codigoTeclas.add(event.getCode());
+                if(codigoTeclas.size()>1){
+                    comprobarTeclas();
+                }
+           }
+       });
+       
+       //El panel de tabs y la barra de herramientas se añaden al panel root
        root.getChildren().add(barra); 
        root.getChildren().add(tabPane);
         
-        Scene scene = new Scene(root, 300, 250);
+        Scene scene = new Scene(root);
         
         primaryStage.setTitle("JavEditor");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
        
-   
+   /** guardarComo()
+   *
+   *  Abre una ventana en la que se introduce el nombre del archivo que se quiere guardar y la dirección
+   * donde se quiere guardar dicho archivo, asignando la nueva dirección del archivo a la posición 
+   * correspondiente al tab en el que se encuentra en el arraylist pathArchivoActual
+   */
     private void guardarComo(){
-        chooser = new FileChooser();
-        chooser.setTitle("Guardar como...");
+        chooser = new OwnFileChooser();
         
         String[] extensiones = {"*.txt","*.html","*.xml","*.js","*.php","*.css","*.java","*.c"}; 
         
@@ -434,28 +504,30 @@ public class JavEditor extends Application {
         FileChooser.ExtensionFilter todos = new FileChooser.ExtensionFilter("Todos los archivos", lista);
         FileChooser.ExtensionFilter txt = new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt");
         FileChooser.ExtensionFilter xml = new FileChooser.ExtensionFilter("XML (*.xml)", "*.xml");
-	      FileChooser.ExtensionFilter html = new FileChooser.ExtensionFilter("HTML (*.html)", "*.html");
+	FileChooser.ExtensionFilter html = new FileChooser.ExtensionFilter("HTML (*.html)", "*.html");
         FileChooser.ExtensionFilter js = new FileChooser.ExtensionFilter("JavaScript (*.js)","*.js");
         FileChooser.ExtensionFilter css = new FileChooser.ExtensionFilter("CSS (*.css)","*.css");
         FileChooser.ExtensionFilter php = new FileChooser.ExtensionFilter("PHP (*.php)","*.php");
         
         
-        chooser.getExtensionFilters().add(txt);
-        chooser.getExtensionFilters().add(todos);
-        chooser.getExtensionFilters().add(xml);
-        chooser.getExtensionFilters().add(html);
-        chooser.getExtensionFilters().add(js);
-        chooser.getExtensionFilters().add(css);
-        chooser.getExtensionFilters().add(php);
+        //chooser.getExtensionFilters().add(txt);
+        //chooser.getExtensionFilters().add(todos);
+        //chooser.getExtensionFilters().add(xml);
+        //chooser.getExtensionFilters().add(html);
+        //chooser.getExtensionFilters().add(js);
+        //chooser.getExtensionFilters().add(css);
+        //chooser.getExtensionFilters().add(php);
+        
         
         chooser.setInitialDirectory(new File("C:\\Users\\Usuario\\Desktop"));
-        File f = chooser.showSaveDialog(null);
+        File f = chooser.ownShowSaveDialog();
         
         try{
-            f = new File(f.getAbsoluteFile() + ".txt");
+            String[] ext = chooser.getFileFilter().getDescription().split(" ");
+            
+            f = new File(f.getAbsoluteFile() + "." + ext[0]);
             archivoGuardado = f.getAbsolutePath();
             actualizarArchivo(archivoGuardado, f.getName());
-            chooser.getExtensionFilters();
             FileWriter fw = new FileWriter(f);
             BufferedWriter bw = new BufferedWriter(fw);
             seleccionarArea();
@@ -468,6 +540,7 @@ public class JavEditor extends Application {
             JOptionPane.showMessageDialog(null,"Error: No se puedo guardar el archivo");
         }
     }
+
     /** seleccionarArea()
      * 
      * Comprueba que tab esta seleccionado de los que es posible crear. Si no esta
@@ -488,7 +561,6 @@ public class JavEditor extends Application {
         if(!hay){
            areaAUtilizar = area;
         }
-        
     }
     
     /** actualizarArchivo()
@@ -556,6 +628,78 @@ public class JavEditor extends Application {
         seleccionarArea();
         areaAUtilizar.deselect();
     }
+    
+    private void nuevaPestaña(){
+        box = new VBox();
+        
+               TextArea areaNueva = new TextArea();
+               areas.add(numeroTab, areaNueva);
+               areas.get(numeroTab).setPrefHeight(800);
+               areas.get(numeroTab).setPrefWidth(600);
+               areas.get(numeroTab).setMinHeight(TextArea.USE_COMPUTED_SIZE);
+               areas.get(numeroTab).setMaxHeight(TextArea.USE_COMPUTED_SIZE);
+               areas.get(numeroTab).setMaxWidth(TextArea.USE_COMPUTED_SIZE);
+               areas.get(numeroTab).setMinWidth(TextArea.USE_COMPUTED_SIZE);
+               areas.get(numeroTab).setStyle("-fx-font:13pt \"Lucida Console\";");
+               
+        
+               box.getChildren().add(areaNueva);
+               Tab tabNuevo = new Tab("Sin Titulo");
+               tabNuevo.setOnClosed(new EventHandler<Event>(){
+                @Override
+                public void handle(Event t){
+                    
+                   
+                    for(int i=0;i<tabs.size();i++){
+                        if(tabs.get(i)!=t.getSource()){
+                            continue;
+                            
+                        }else{
+                            if(primertab){
+                              pathArchivoActual.remove(i);
+                            }else{
+                              pathArchivoActual.remove(i+1);
+                            }
+                            areas.remove(i);
+                            tabs.remove(i);
+                            numeroTab--;
+                            break;   
+                        }   
+                    } 
+                }
+              });
+        tabs.add(numeroTab, tabNuevo);
+        tabs.get(numeroTab).setClosable(true);
+        tabs.get(numeroTab).setContent(box);
+        if(primertab){
+          tabPane.getTabs().add(numeroTab,tabs.get(numeroTab));
+        }else{
+          tabPane.getTabs().add(numeroTab+1,tabs.get(numeroTab));
+          numeroTab++;
+        }      
+        
+        
+        //Inicializamos la posición de la dirección del archivo actual en funcion del tab a vacío
+        //para después hacer un set y cambiar la dirección en el caso de que guardemos una nueva
+        //dirección o abramos otro archivo ya que con el add desplazamos en vez de reemplazar.
+        //Lo que alteraría el orden de las direcciones con los tabs
+        pathArchivoActual.add(numeroTab," ");
+        if(primertab){
+        numeroTab++;}
+        
+      }
+    
+   private void comprobarTeclas(){
+       if(codigoTeclas.get(1)==KeyCode.CONTROL){
+           if(codigoTeclas.get(0)==KeyCode.N){
+               nuevaPestaña();  
+           }
+       }
+       codigoTeclas.remove(0);
+       codigoTeclas.remove(0);
+       
+   }
+    
 
     /**
      * The main() method is ignored in correctly deployed JavaFX application.
@@ -566,6 +710,7 @@ public class JavEditor extends Application {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+         
         launch(args);
     }
 }

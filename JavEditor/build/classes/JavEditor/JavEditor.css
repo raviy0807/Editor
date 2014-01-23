@@ -1,0 +1,19 @@
+/* 
+    Document   : JavEditor
+    Created on : 22-ene-2014, 19:30:42
+    Author     : Usuario
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+root { 
+    display: block;
+}
+.menu{
+    fx-background-color:red;
+}
+.menuitem{
+    -fx-background-color: red;
+    -fx-font-size:60pt;
+}
+
