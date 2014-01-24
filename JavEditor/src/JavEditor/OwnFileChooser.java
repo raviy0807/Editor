@@ -121,14 +121,15 @@ public class OwnFileChooser extends JFileChooser{
                    }
                
         };
-
+           
+       
         addChoosableFileFilter(txt);
         addChoosableFileFilter(html);
         addChoosableFileFilter(javascript);
         addChoosableFileFilter(php);
         addChoosableFileFilter(css);
         addChoosableFileFilter(c);
-        this.setAcceptAllFileFilterUsed(true);
+        setAcceptAllFileFilterUsed(true);
         SwingUtilities.updateComponentTreeUI(this);
         
         
@@ -145,14 +146,22 @@ public class OwnFileChooser extends JFileChooser{
     
     public File ownShowSaveDialog(){
         File f;
-        super.showSaveDialog(this);
+        int returnval;
+        returnval = super.showSaveDialog(this);
+        if(returnval==JFileChooser.CANCEL_OPTION){
+            
+        }
         f = super.getSelectedFile();
         return f;
         
     }
     public File ownShowOpenDialog(){
         File f;
-        super.showOpenDialog(this);
+        int returnval;
+        returnval = super.showOpenDialog(this);
+        if(returnval==JFileChooser.CANCEL_OPTION){
+          
+        }
         f = super.getSelectedFile();
         return f;
         

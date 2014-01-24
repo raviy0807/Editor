@@ -84,8 +84,13 @@ public class JavEditor extends Application {
     private SeparatorMenuItem [] separate = new SeparatorMenuItem[10];
     private ArrayList<KeyCode> codigoTeclas = new ArrayList<KeyCode>();
     
-    FileChooser h = new FileChooser();
-    
+    //EventHandlers
+    private EventHandler<ActionEvent> archivocerrar;
+    private EventHandler<ActionEvent> todoscerrar;
+    private EventHandler<ActionEvent> pestañanueva;
+    private EventHandler<ActionEvent> comoguardar;
+    private EventHandler<ActionEvent> abrirarchivo;
+    private EventHandler<ActionEvent> guardararchivo;
    
     
     @Override
@@ -95,6 +100,7 @@ public class JavEditor extends Application {
        //corresponde al area que se crea por defecto
        pathArchivoActual.add(0," ");
        
+       //Creo un array de separadores de menuitems
        for(int i =0;i<separate.length;i++){
            separate[i] = new SeparatorMenuItem();
        }
@@ -108,8 +114,8 @@ public class JavEditor extends Application {
        root.setMaxWidth(AnchorPane.USE_COMPUTED_SIZE);
        root.setMinHeight(AnchorPane.USE_COMPUTED_SIZE);
        root.setMinWidth(AnchorPane.USE_COMPUTED_SIZE);
-       root.setPrefHeight(400);
-       root.setPrefWidth(600);
+       root.setPrefHeight(AnchorPane.USE_COMPUTED_SIZE);
+       root.setPrefWidth(AnchorPane.USE_COMPUTED_SIZE);
        root.setScaleX(1);
        root.setScaleY(1);
        root.setScaleZ(1);
@@ -123,7 +129,7 @@ public class JavEditor extends Application {
        barra.setMinHeight(24);
        barra.setMinWidth(MenuBar.USE_COMPUTED_SIZE);
        barra.setPrefHeight(22);
-       barra.setPrefWidth(600);
+       barra.setPrefWidth(1024);
        barra.setScaleX(1);
        barra.setScaleY(1);
        barra.setScaleZ(1);
@@ -139,51 +145,38 @@ public class JavEditor extends Application {
        * Abre un archivo y escribe el texto de dicho archivo en el area correspondiente
        * al tab seleccionado.
        */
-       abrir.setOnAction(new EventHandler<ActionEvent>(){
+       abrir.setOnAction(abrirarchivo = new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
+              
                chooser = new OwnFileChooser();
-        
-               String[] extensiones = {"*.txt","*.html","*.xml","*.js","*.php","*.css","*.java","*.c"}; 
-        
-               ArrayList<String> lista = new ArrayList<String>();
-        
-               for(int i =0;i<extensiones.length;i++){
-                  lista.add(extensiones[i]);
-               }
-        
-               FileChooser.ExtensionFilter todos = new FileChooser.ExtensionFilter("Todos los archivos", lista);
-               //FileChooser.ExtensionFilter txt = new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt");
-               FileChooser.ExtensionFilter xml = new FileChooser.ExtensionFilter("XML (*.xml)", "*.xml");
-               FileChooser.ExtensionFilter html = new FileChooser.ExtensionFilter("HTML (*.html)", "*.html");
-               FileChooser.ExtensionFilter js = new FileChooser.ExtensionFilter("JavaScript (*.js)","*.js");
-               FileChooser.ExtensionFilter css = new FileChooser.ExtensionFilter("CSS (*.css)","*.css");
-               FileChooser.ExtensionFilter php = new FileChooser.ExtensionFilter("PHP (*.php)","*.php");
-               
                chooser.setInitialDirectory(new File("C:\\Users\\Usuario\\Desktop"));
                File f = chooser.ownShowOpenDialog();
             
                try{
-                seleccionarArea();
-                areaAUtilizar.setText("");
+                 if(tabPane.getTabs().size()==0){
+                    pestañanueva.handle(null);
+                 }
+                 seleccionarArea();
+                 areaAUtilizar.setText("");
                
-                if(f.getName().endsWith(".txt")){//Si el archivo f acaba en .txt
+                 if(f.getName().endsWith(".txt")){//Si el archivo f acaba en .txt
                     if(true){
                     areaAUtilizar.setStyle("-fx-text-fill:#ff7f50;" +
                                 "-fx-background-color:#355e3b;");
                     }
-                }else if(f.getName().endsWith(".html")){
+                 }else if(f.getName().endsWith(".html")){
                     
-                }
+                 }
                 
-                actualizarArchivo(f.getAbsolutePath(),f.getName());
-                FileReader fr = new FileReader(f);
-                BufferedReader br = new BufferedReader(fr);
+                 actualizarArchivo(f.getAbsolutePath(),f.getName());
+                 FileReader fr = new FileReader(f);
+                 BufferedReader br = new BufferedReader(fr);
                 
-                String parte = null;
-                while((parte=br.readLine())!=null){
+                 String parte = null;
+                 while((parte=br.readLine())!=null){
                     areaAUtilizar.appendText(parte + "\n");
-                }
+                 }
                 
                }catch(Exception e){
                   JOptionPane.showMessageDialog(null,"Error: No se ha podido abrir el archivo");
@@ -197,12 +190,13 @@ public class JavEditor extends Application {
        * guardandose en la dirección que se le indique.
        */
        guardar = new MenuItem("Guardar                                       Ctrl+S");
-       guardar.setOnAction(new EventHandler<ActionEvent>(){
+       guardar.setOnAction(guardararchivo = new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
                busquedaArchivo();
-                 if(archivoGuardado==null && archivoUtilizando==null){
-                    guardarComo();
+                if(archivoUtilizando==" "){
+                    System.out.println("Entra aqui");
+                    comoguardar.handle(null);
                 }else{
                     File f = new File(archivoUtilizando) ;
                     try{
@@ -225,13 +219,33 @@ public class JavEditor extends Application {
        /**
        * Guarda un archivo en una dirección determinada, ya estuviese o no creado el archivo
        */
-       guardarcomo = new MenuItem("Guardar Como...                          Ctrl+G");
+       guardarcomo = new MenuItem("Guardar Como...                          Ctrl+S");
        //guardarcomo.setStyle("-fx-font-size:60pt;");
-       guardarcomo.setOnAction(new EventHandler<ActionEvent>(){
+       guardarcomo.setOnAction(comoguardar = new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
-               guardarComo();
-           }
+               chooser = new OwnFileChooser(); 
+                chooser.setInitialDirectory(new File("C:\\Users\\Usuario\\Desktop"));
+                File f = chooser.ownShowSaveDialog();
+        
+                try{
+                    String[] ext = chooser.getFileFilter().getDescription().split(" ");
+            
+                    f = new File(f.getAbsoluteFile() + "." + ext[0]);
+                    archivoGuardado = f.getAbsolutePath();
+                    actualizarArchivo(archivoGuardado, f.getName());
+                    FileWriter fw = new FileWriter(f);
+                    BufferedWriter bw = new BufferedWriter(fw);
+                    seleccionarArea();
+                    String texto = areaAUtilizar.getText(); 
+                    bw.write(texto);
+                    bw.close();
+                    fw.close();
+           
+                }catch(Exception e){
+                    JOptionPane.showMessageDialog(null,"Error: No se puedo guardar el archivo");
+                }
+            }
        });
 
        /**
@@ -249,17 +263,73 @@ public class JavEditor extends Application {
        *  Abre una nueva pestaña para crear un nuevo archivo
        */
        nuevaPestaña = new MenuItem("Nuevo Archivo                            Ctrl+N");
-       nuevaPestaña.setOnAction(new EventHandler<ActionEvent>(){
+       nuevaPestaña.setOnAction(pestañanueva = new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
-               nuevaPestaña();
+               box = new VBox();
+        
+               TextArea areaNueva = new TextArea();
+               areas.add(numeroTab, areaNueva);
+               areas.get(numeroTab).setPrefHeight(800);
+               areas.get(numeroTab).setPrefWidth(1024);
+               areas.get(numeroTab).setMinHeight(TextArea.USE_COMPUTED_SIZE);
+               areas.get(numeroTab).setMaxHeight(TextArea.USE_COMPUTED_SIZE);
+               areas.get(numeroTab).setMaxWidth(TextArea.USE_COMPUTED_SIZE);
+               areas.get(numeroTab).setMinWidth(TextArea.USE_COMPUTED_SIZE);
+               areas.get(numeroTab).setStyle("-fx-font:13pt \"Lucida Console\";");
+               
+        
+               box.getChildren().add(areaNueva);
+               Tab tabNuevo = new Tab("Sin Titulo");
+               tabNuevo.setOnClosed(new EventHandler<Event>(){
+                @Override
+                public void handle(Event t){
+                    
+                   
+                    for(int i=0;i<tabs.size();i++){
+                        if(tabs.get(i)!=t.getSource()){
+                            continue;
+                            
+                        }else{
+                            if(primertab){
+                              pathArchivoActual.remove(i);
+                            }else{
+                              pathArchivoActual.remove(i+1);
+                            }
+                            areas.remove(i);
+                            tabs.remove(i);
+                            numeroTab--;
+                            break;   
+                        }   
+                    } 
+                }
+              });
+              tabs.add(numeroTab, tabNuevo);
+              tabs.get(numeroTab).setClosable(true);
+              tabs.get(numeroTab).setContent(box);
+              if(primertab){
+                tabPane.getTabs().add(numeroTab,tabs.get(numeroTab));
+              }else{
+              tabPane.getTabs().add(numeroTab+1,tabs.get(numeroTab));
+                 numeroTab++;
+              }      
+        
+        
+        //Inicializamos la posición de la dirección del archivo actual en funcion del tab a vacío
+        //para después hacer un set y cambiar la dirección en el caso de que guardemos una nueva
+        //dirección o abramos otro archivo ya que con el add desplazamos en vez de reemplazar.
+        //Lo que alteraría el orden de las direcciones con los tabs
+        pathArchivoActual.add(numeroTab," ");
+        if(primertab){
+        numeroTab++;}
            }
        });
        
        cerrarArchivo = new MenuItem("Cerrar Archivo                             Ctrl+A");
-       cerrarArchivo.setOnAction(new EventHandler<ActionEvent>(){
+       cerrarArchivo.setOnAction(archivocerrar = new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
+               
                boolean noestab = false;
                 for(int i=0;i<tabs.size();i++){
                        if(!tabs.get(i).isSelected()){
@@ -285,13 +355,38 @@ public class JavEditor extends Application {
                       tabPane.getTabs().remove(0);
                       primertab=true;
                 }
-         
            
             }
        });
        
        cerrarTodo = new MenuItem("Cerrar Todo                                 Ctrl+Q");
-       cerrarTodo.setOnAction(null);
+       cerrarTodo.setOnAction(todoscerrar = new EventHandler<ActionEvent>(){
+           
+           @Override
+           public void handle(ActionEvent t){
+               int longitud = tabPane.getTabs().size();
+               for(int i=0;i<longitud;i++){
+                   tabPane.getTabs().remove(0);
+               }
+               int longitudtabs = tabs.size();
+               for(int i=0;i<tabs.size();i++){
+                   tabs.remove(0);
+                   areas.remove(0);
+                   if(primertab){
+                       pathArchivoActual.remove(0);
+                   }else{
+                       pathArchivoActual.remove(0+1);
+                   }
+               }
+               if(!primertab){
+                   pathArchivoActual.remove(0);
+               }
+               primertab=true;
+               numeroTab=0;
+               
+               
+           }
+       });
        archivo.getItems().addAll(nuevaPestaña,separate[0],abrir,guardar,guardarcomo,separate[1],cerrarArchivo,cerrarTodo,separate[2],cerrar);
        edicion = new Menu("Edición");
        
@@ -306,7 +401,8 @@ public class JavEditor extends Application {
            public void handle(ActionEvent t){
                 seleccion=area.getSelectedText();
                 if(!seleccion.isEmpty()){
-                    deseleccionar();
+                     seleccionarArea();
+                    areaAUtilizar.deselect();
                 }
            }
        });
@@ -331,7 +427,8 @@ public class JavEditor extends Application {
        deseleccionar.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
-                deseleccionar();
+                 seleccionarArea();
+                 areaAUtilizar.deselect();
            }
        });
 
@@ -357,7 +454,7 @@ public class JavEditor extends Application {
        copiar.setOnAction(new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
-               seleccionarArea();
+                seleccionarArea();
                 seleccion = areaAUtilizar.getSelectedText();
            }
        });
@@ -449,12 +546,12 @@ public class JavEditor extends Application {
                pathArchivoActual.remove(0);
            }
        });
-
+       
        //Se crea un nuevo area predeterminado el cual se introduce en el primer tab creado y este se añade al
        //panel de tabs
        area = new TextArea();
        area.setPrefHeight(800);
-       area.setPrefWidth(600);
+       area.setPrefWidth(1024);
        area.setMinHeight(TextArea.USE_COMPUTED_SIZE);
        area.setMaxHeight(TextArea.USE_COMPUTED_SIZE);
        area.setMinWidth(TextArea.USE_COMPUTED_SIZE);
@@ -462,7 +559,7 @@ public class JavEditor extends Application {
        area.setStyle("-fx-font:13pt \"Lucida Console\";");
        tab1.setContent(area);
        tabPane.getTabs().add(tab1);
-       
+       tabPane.setPrefWidth(1024);
        root.setOnKeyPressed( new EventHandler<KeyEvent>(){
            @Override
            public void handle(KeyEvent event){
@@ -470,6 +567,12 @@ public class JavEditor extends Application {
                 if(codigoTeclas.size()>1){
                     comprobarTeclas();
                 }
+           }
+       });
+       root.setOnKeyReleased(new EventHandler<KeyEvent>(){
+           @Override
+           public void handle(KeyEvent event){
+               codigoTeclas.remove(event.getCode());
            }
        });
        
@@ -484,62 +587,7 @@ public class JavEditor extends Application {
         primaryStage.show();
     }
        
-   /** guardarComo()
-   *
-   *  Abre una ventana en la que se introduce el nombre del archivo que se quiere guardar y la dirección
-   * donde se quiere guardar dicho archivo, asignando la nueva dirección del archivo a la posición 
-   * correspondiente al tab en el que se encuentra en el arraylist pathArchivoActual
-   */
-    private void guardarComo(){
-        chooser = new OwnFileChooser();
-        
-        String[] extensiones = {"*.txt","*.html","*.xml","*.js","*.php","*.css","*.java","*.c"}; 
-        
-        ArrayList<String> lista = new ArrayList<String>();
-        
-        for (int i =0;i<extensiones.length;i++){
-            lista.add(extensiones[i]);
-        }
-           
-        FileChooser.ExtensionFilter todos = new FileChooser.ExtensionFilter("Todos los archivos", lista);
-        FileChooser.ExtensionFilter txt = new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt");
-        FileChooser.ExtensionFilter xml = new FileChooser.ExtensionFilter("XML (*.xml)", "*.xml");
-	FileChooser.ExtensionFilter html = new FileChooser.ExtensionFilter("HTML (*.html)", "*.html");
-        FileChooser.ExtensionFilter js = new FileChooser.ExtensionFilter("JavaScript (*.js)","*.js");
-        FileChooser.ExtensionFilter css = new FileChooser.ExtensionFilter("CSS (*.css)","*.css");
-        FileChooser.ExtensionFilter php = new FileChooser.ExtensionFilter("PHP (*.php)","*.php");
-        
-        
-        //chooser.getExtensionFilters().add(txt);
-        //chooser.getExtensionFilters().add(todos);
-        //chooser.getExtensionFilters().add(xml);
-        //chooser.getExtensionFilters().add(html);
-        //chooser.getExtensionFilters().add(js);
-        //chooser.getExtensionFilters().add(css);
-        //chooser.getExtensionFilters().add(php);
-        
-        
-        chooser.setInitialDirectory(new File("C:\\Users\\Usuario\\Desktop"));
-        File f = chooser.ownShowSaveDialog();
-        
-        try{
-            String[] ext = chooser.getFileFilter().getDescription().split(" ");
-            
-            f = new File(f.getAbsoluteFile() + "." + ext[0]);
-            archivoGuardado = f.getAbsolutePath();
-            actualizarArchivo(archivoGuardado, f.getName());
-            FileWriter fw = new FileWriter(f);
-            BufferedWriter bw = new BufferedWriter(fw);
-            seleccionarArea();
-            String texto = areaAUtilizar.getText(); 
-            bw.write(texto);
-            bw.close();
-            fw.close();
-           
-        }catch(Exception e){
-            JOptionPane.showMessageDialog(null,"Error: No se puedo guardar el archivo");
-        }
-    }
+   
 
     /** seleccionarArea()
      * 
@@ -619,80 +667,41 @@ public class JavEditor extends Application {
          }
     }
     
-    /** deseleccionar()
-    *
-    * Deselecciona el texto anteriormente seleccionado
-    */
-
-    private void deseleccionar(){
-        seleccionarArea();
-        areaAUtilizar.deselect();
-    }
     
-    private void nuevaPestaña(){
-        box = new VBox();
-        
-               TextArea areaNueva = new TextArea();
-               areas.add(numeroTab, areaNueva);
-               areas.get(numeroTab).setPrefHeight(800);
-               areas.get(numeroTab).setPrefWidth(600);
-               areas.get(numeroTab).setMinHeight(TextArea.USE_COMPUTED_SIZE);
-               areas.get(numeroTab).setMaxHeight(TextArea.USE_COMPUTED_SIZE);
-               areas.get(numeroTab).setMaxWidth(TextArea.USE_COMPUTED_SIZE);
-               areas.get(numeroTab).setMinWidth(TextArea.USE_COMPUTED_SIZE);
-               areas.get(numeroTab).setStyle("-fx-font:13pt \"Lucida Console\";");
-               
-        
-               box.getChildren().add(areaNueva);
-               Tab tabNuevo = new Tab("Sin Titulo");
-               tabNuevo.setOnClosed(new EventHandler<Event>(){
-                @Override
-                public void handle(Event t){
-                    
-                   
-                    for(int i=0;i<tabs.size();i++){
-                        if(tabs.get(i)!=t.getSource()){
-                            continue;
-                            
-                        }else{
-                            if(primertab){
-                              pathArchivoActual.remove(i);
-                            }else{
-                              pathArchivoActual.remove(i+1);
-                            }
-                            areas.remove(i);
-                            tabs.remove(i);
-                            numeroTab--;
-                            break;   
-                        }   
-                    } 
-                }
-              });
-        tabs.add(numeroTab, tabNuevo);
-        tabs.get(numeroTab).setClosable(true);
-        tabs.get(numeroTab).setContent(box);
-        if(primertab){
-          tabPane.getTabs().add(numeroTab,tabs.get(numeroTab));
-        }else{
-          tabPane.getTabs().add(numeroTab+1,tabs.get(numeroTab));
-          numeroTab++;
-        }      
-        
-        
-        //Inicializamos la posición de la dirección del archivo actual en funcion del tab a vacío
-        //para después hacer un set y cambiar la dirección en el caso de que guardemos una nueva
-        //dirección o abramos otro archivo ya que con el add desplazamos en vez de reemplazar.
-        //Lo que alteraría el orden de las direcciones con los tabs
-        pathArchivoActual.add(numeroTab," ");
-        if(primertab){
-        numeroTab++;}
-        
-      }
+       
     
    private void comprobarTeclas(){
-       if(codigoTeclas.get(1)==KeyCode.CONTROL){
-           if(codigoTeclas.get(0)==KeyCode.N){
-               nuevaPestaña();  
+       if(codigoTeclas.get(0).equals(KeyCode.CONTROL)){
+           System.out.println("Llega");
+           if(codigoTeclas.get(1)==KeyCode.N){
+               pestañanueva.handle(null);
+           }else if(codigoTeclas.get(1)==KeyCode.Z){
+               seleccion=area.getSelectedText();
+                if(!seleccion.isEmpty()){
+                     seleccionarArea();
+                    areaAUtilizar.deselect();
+                }
+           }else if(codigoTeclas.get(1)==KeyCode.X){
+               seleccionarArea();
+               seleccion = areaAUtilizar.getSelectedText();
+               areaAUtilizar.cut();
+           }else if(codigoTeclas.get(1)==KeyCode.C){
+               seleccionarArea();
+               seleccion = areaAUtilizar.getSelectedText();
+           }else if(codigoTeclas.get(1)==KeyCode.Q){
+               todoscerrar.handle(null);
+           }else if(codigoTeclas.get(1)==KeyCode.V){
+               seleccionarArea();
+               areaAUtilizar.appendText(seleccion);
+           }else if(codigoTeclas.get(1)==KeyCode.T){
+               seleccionarArea();
+               areaAUtilizar.selectAll();
+           }else if(codigoTeclas.get(1)==KeyCode.A){
+               archivocerrar.handle(null);
+           }else if(codigoTeclas.get(1)==KeyCode.O){
+               abrirarchivo.handle(null);
+           }else if(codigoTeclas.get(1)==KeyCode.S){
+               guardararchivo.handle(null);
            }
        }
        codigoTeclas.remove(0);
