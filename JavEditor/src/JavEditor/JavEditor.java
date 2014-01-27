@@ -10,23 +10,35 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.geometry.Point3D;
 import javafx.event.Event;
+import javafx.event.EventType;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -38,7 +50,9 @@ import javax.swing.JOptionPane;
  */
 public class JavEditor extends Application {
     
-    private AnchorPane root;
+    private BorderPane root;
+    private ListView<String> elementos;
+    private TreeView arbol;
     private MenuBar barra;
     private VBox box;
     private TabPane tabPane;
@@ -81,9 +95,15 @@ public class JavEditor extends Application {
     public ArrayList<Tab> tabs = new ArrayList<Tab>();
     private int numeroTab=0;
     private boolean primertab=false;
+    private boolean esparaabrir=false;
+    private boolean asterisco=false;
+    private boolean esparasobrescribir = false;
     private SeparatorMenuItem [] separate = new SeparatorMenuItem[10];
     private ArrayList<KeyCode> codigoTeclas = new ArrayList<KeyCode>();
-    
+    private ObservableList list =  FXCollections.observableArrayList();
+    private int numeroArbol = 0;
+    private TreeItem<String> items = new TreeItem<String>();
+
     //EventHandlers
     private EventHandler<ActionEvent> archivocerrar;
     private EventHandler<ActionEvent> todoscerrar;
@@ -91,15 +111,17 @@ public class JavEditor extends Application {
     private EventHandler<ActionEvent> comoguardar;
     private EventHandler<ActionEvent> abrirarchivo;
     private EventHandler<ActionEvent> guardararchivo;
+    private EventHandler<ActionEvent> loquesea;
+
    
     
     @Override
-    public void start(Stage primaryStage) { 
+    public void start(Stage primaryStage) {
+
        
       //Inicializo la posición cero de las direcciones de archivos a vacio(explicado mas abajo). Esta
        //corresponde al area que se crea por defecto
        pathArchivoActual.add(0," ");
-       
        //Creo un array de separadores de menuitems
        for(int i =0;i<separate.length;i++){
            separate[i] = new SeparatorMenuItem();
@@ -108,14 +130,14 @@ public class JavEditor extends Application {
        Point3D punto = new Point3D(0,0,1);
 
        //Panel que contiene todos los demás contenidos
-       root = new AnchorPane();
+       root = new BorderPane();
        root.autosize();
-       root.setMaxHeight(AnchorPane.USE_COMPUTED_SIZE);
-       root.setMaxWidth(AnchorPane.USE_COMPUTED_SIZE);
-       root.setMinHeight(AnchorPane.USE_COMPUTED_SIZE);
-       root.setMinWidth(AnchorPane.USE_COMPUTED_SIZE);
-       root.setPrefHeight(AnchorPane.USE_COMPUTED_SIZE);
-       root.setPrefWidth(AnchorPane.USE_COMPUTED_SIZE);
+       root.setMaxHeight(BorderPane.USE_COMPUTED_SIZE);
+       root.setMaxWidth(BorderPane.USE_COMPUTED_SIZE);
+       root.setMinHeight(BorderPane.USE_COMPUTED_SIZE);
+       root.setMinWidth(BorderPane.USE_COMPUTED_SIZE);
+       root.setPrefHeight(BorderPane.USE_COMPUTED_SIZE);
+       root.setPrefWidth(BorderPane.USE_COMPUTED_SIZE);
        root.setScaleX(1);
        root.setScaleY(1);
        root.setScaleZ(1);
@@ -142,8 +164,8 @@ public class JavEditor extends Application {
        abrir = new MenuItem("Abrir                                            Ctrl+O");
 
        /**
-       * Abre un archivo y escribe el texto de dicho archivo en el area correspondiente
-       * al tab seleccionado.
+       * Abre un archivo en un nuevo tab que crea y escribe el texto de dicho archivo en el area correspondiente
+       * al tab seleccionado, que es el tab creado. ATAJO : CTRL+0
        */
        abrir.setOnAction(abrirarchivo = new EventHandler<ActionEvent>(){
            @Override
@@ -154,22 +176,17 @@ public class JavEditor extends Application {
                File f = chooser.ownShowOpenDialog();
             
                try{
-                 if(tabPane.getTabs().size()==0){
-                    pestañanueva.handle(null);
-                 }
+                 
+                 esparaabrir=true;
+                 pestañanueva.handle(null);
                  seleccionarArea();
-                 areaAUtilizar.setText("");
+                 esparaabrir=false;
                
-                 if(f.getName().endsWith(".txt")){//Si el archivo f acaba en .txt
-                    if(true){
-                    areaAUtilizar.setStyle("-fx-text-fill:#ff7f50;" +
-                                "-fx-background-color:#355e3b;");
-                    }
-                 }else if(f.getName().endsWith(".html")){
-                    
-                 }
-                
-                 actualizarArchivo(f.getAbsolutePath(),f.getName());
+                 
+                 String n = actualizarArchivo(f.getAbsolutePath(),f.getName());
+                 TreeItem<String> item = new TreeItem<String>(f.getName());
+                 items.getChildren().add(item);
+                 arbol.setRoot(items);
                  FileReader fr = new FileReader(f);
                  BufferedReader br = new BufferedReader(fr);
                 
@@ -187,7 +204,7 @@ public class JavEditor extends Application {
        /**
        * Guarda un archivo, en el caso de que el archivo haya sido abierto y ya existiese, se guardará en
        * la dirección que le corresponda, en el caso de que no existiese se llamará a la función guardarComo
-       * guardandose en la dirección que se le indique.
+       * guardandose en la dirección que se le indique. ATAJO : CTRL + S
        */
        guardar = new MenuItem("Guardar                                       Ctrl+S");
        guardar.setOnAction(guardararchivo = new EventHandler<ActionEvent>(){
@@ -195,7 +212,6 @@ public class JavEditor extends Application {
            public void handle(ActionEvent t){
                busquedaArchivo();
                 if(archivoUtilizando==" "){
-                    System.out.println("Entra aqui");
                     comoguardar.handle(null);
                 }else{
                     File f = new File(archivoUtilizando) ;
@@ -217,9 +233,10 @@ public class JavEditor extends Application {
        });
 
        /**
-       * Guarda un archivo en una dirección determinada, ya estuviese o no creado el archivo
+       * Guarda un archivo en una dirección determinada, ya estuviese o no creado el archivo, al realizar el guardado
+       * con otro nombre actualizara el nombre del tab y el nombre que aparezca en el TreeView. 
        */
-       guardarcomo = new MenuItem("Guardar Como...                          Ctrl+S");
+       guardarcomo = new MenuItem("Guardar Como...");
        //guardarcomo.setStyle("-fx-font-size:60pt;");
        guardarcomo.setOnAction(comoguardar = new EventHandler<ActionEvent>(){
            @Override
@@ -230,10 +247,18 @@ public class JavEditor extends Application {
         
                 try{
                     String[] ext = chooser.getFileFilter().getDescription().split(" ");
-            
-                    f = new File(f.getAbsoluteFile() + "." + ext[0]);
+                    int u = ext[1].lastIndexOf(")");
+                    String extension = ext[1].substring(2, u);
+                    f = new File(f.getAbsoluteFile() + extension);
                     archivoGuardado = f.getAbsolutePath();
-                    actualizarArchivo(archivoGuardado, f.getName());
+                    esparasobrescribir=true;
+                    String n = actualizarArchivo(archivoGuardado, f.getName());
+                    actualizarArbol(n);
+                    esparasobrescribir=false;
+
+                    TreeItem<String> item = new TreeItem<String>(f.getName());
+                    items.getChildren().add(item);
+                    arbol.setRoot(items);
                     FileWriter fw = new FileWriter(f);
                     BufferedWriter bw = new BufferedWriter(fw);
                     seleccionarArea();
@@ -260,14 +285,15 @@ public class JavEditor extends Application {
        });
 
        /**
-       *  Abre una nueva pestaña para crear un nuevo archivo
+       *  Abre una nueva pestaña para crear un nuevo archivo. ATAJO : CTRL+N
        */
        nuevaPestaña = new MenuItem("Nuevo Archivo                            Ctrl+N");
        nuevaPestaña.setOnAction(pestañanueva = new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
                box = new VBox();
-        
+              
+               //Crea un nuevo area de texto para incluirlo en la nueva pestaña
                TextArea areaNueva = new TextArea();
                areas.add(numeroTab, areaNueva);
                areas.get(numeroTab).setPrefHeight(800);
@@ -280,20 +306,35 @@ public class JavEditor extends Application {
                
         
                box.getChildren().add(areaNueva);
+
+               //Crea el nuevo tab
                Tab tabNuevo = new Tab("Sin Titulo");
+
+               //Si se presiona el simbolo de cerrar del tab elimina el tab del tabpane por defecto
+               //y se elimina el hueco creado para el tab en el array de direcciones de archivo
+               //y se elimina del array de tabs, y el area correspondiente al tab tambien.
+               //Decrementamos el numeroTab que utilizo como contador y para posicionar los tabs
+               //tanto en la lista de tabs como en el tabPane.
+               //No podemos llamar a cerrararchivo ya que este tiene que tener
+               //en cuenta el tab que esta seleccionado para eliminarlo ya que no sabemos cual es el tab
+               //que se quiere eliminar  porque el elemento que se presiona para ello es distinto del
+               //tab. Y si llamasemos desde esta funcion a archivocerrar no podriamos saber el tab 
+               //seleccionado ya que este se borra del tabPane automaticamente.
                tabNuevo.setOnClosed(new EventHandler<Event>(){
                 @Override
                 public void handle(Event t){
-                    
-                   
+                    String s ="";
                     for(int i=0;i<tabs.size();i++){
                         if(tabs.get(i)!=t.getSource()){
                             continue;
-                            
                         }else{
                             if(primertab){
+                              s = tabs.get(i).getText();
+                              actualizarArbol(s);
                               pathArchivoActual.remove(i);
                             }else{
+                              s = tabs.get(i).getText();
+                              actualizarArbol(s);
                               pathArchivoActual.remove(i+1);
                             }
                             areas.remove(i);
@@ -304,9 +345,19 @@ public class JavEditor extends Application {
                     } 
                 }
               });
+
+              //Añadimos el nuevo tab a la lista de tabs y le añadimos las caracteristicas
               tabs.add(numeroTab, tabNuevo);
               tabs.get(numeroTab).setClosable(true);
               tabs.get(numeroTab).setContent(box);
+              tabs.get(numeroTab).selectedProperty();
+
+              //Preseleccionamos el nuevo tab creado
+              tabPane.getSelectionModel().select(tabNuevo);
+
+              //En el caso de que el tab por defecto haya sido borrado, se añade al tabPane en la posición
+              //numeroTab si por el contrario sigue abierto, se añade en la posición numeroTab+1
+              //ya que en la primera posición de dicha lista se encontrara el tab por defecto "tab1"
               if(primertab){
                 tabPane.getTabs().add(numeroTab,tabs.get(numeroTab));
               }else{
@@ -321,15 +372,27 @@ public class JavEditor extends Application {
         //Lo que alteraría el orden de las direcciones con los tabs
         pathArchivoActual.add(numeroTab," ");
         if(primertab){
-        numeroTab++;}
-           }
+            numeroTab++;
+        }
+        if(!esparaabrir){
+         TreeItem<String> item = new TreeItem<String>("Sin Titulo");
+         items.getChildren().add(item);
+         arbol.setRoot(items);
+        }
+        }
        });
        
-       cerrarArchivo = new MenuItem("Cerrar Archivo                             Ctrl+A");
+       /*
+       * Cierra el tab que se encuentra seleccionado. Buscamos el tab seleccionado, y cuando lo encontramos
+       * borramos del TreeView el nombre del archivo correspondiente con actualizarArbol, y eliminamos
+       * la posición creada para la dirección del archivo, el area y el tab de las listas tabs y areas, 
+       * a parte de eliminarlo del tabPane ya que al ser un atajo no se realiza por defecto. ATAJO : CTRL+A
+       */
+       cerrarArchivo = new MenuItem("Cerrar Archivo                             Ctrl+T");
        cerrarArchivo.setOnAction(archivocerrar = new EventHandler<ActionEvent>(){
            @Override
            public void handle(ActionEvent t){
-               
+               String s;
                boolean noestab = false;
                 for(int i=0;i<tabs.size();i++){
                        if(!tabs.get(i).isSelected()){
@@ -337,11 +400,17 @@ public class JavEditor extends Application {
                         }else{
                            noestab= true;
                             if(primertab){
+                              s = tabs.get(i).getText();
+                              actualizarArbol(s);
                               pathArchivoActual.remove(i);
                               tabPane.getTabs().remove(i);
                             }else{
+                              
+                              s = tabs.get(i).getText();
+                              actualizarArbol(s);
                               pathArchivoActual.remove(i+1);
                               tabPane.getTabs().remove(i+1);
+                              
                             }
                             
                             areas.remove(i);
@@ -351,22 +420,32 @@ public class JavEditor extends Application {
                         }   
                     } 
                   if(!noestab){
+                      s = tab1.getText();
+                      actualizarArbol(s);
                       pathArchivoActual.remove(0);
-                      tabPane.getTabs().remove(0);
+                      tabPane.getTabs().remove(tab1);
                       primertab=true;
                 }
            
             }
        });
-       
+        
+       /*
+       * Cierra todos los tabs abiertos del programa, recorre todos los tabs del tabPane y los va eleminando
+       * de la lista uno por uno, ademas, se borran las correspondientes direcciones de archivos guardadas y
+       * las areas creadas para los tabs.
+       */
        cerrarTodo = new MenuItem("Cerrar Todo                                 Ctrl+Q");
        cerrarTodo.setOnAction(todoscerrar = new EventHandler<ActionEvent>(){
            
            @Override
            public void handle(ActionEvent t){
-               int longitud = tabPane.getTabs().size();
-               for(int i=0;i<longitud;i++){
-                   tabPane.getTabs().remove(0);
+               int longitudTabPane = tabPane.getTabs().size();
+               for(int i=0;i<longitudTabPane;i++){
+                   if(items.getChildren().size()>0){
+                        items.getChildren().remove(0);
+                   }
+                   tabPane.getTabs().remove(0);  
                }
                int longitudtabs = tabs.size();
                for(int i=0;i<tabs.size();i++){
@@ -407,7 +486,7 @@ public class JavEditor extends Application {
            }
        });
 
-       seleccionarTodo = new MenuItem("Seleccionar Todo                              Ctrl+T");
+       seleccionarTodo = new MenuItem("Seleccionar Todo                              Ctrl+A");
 
        /*
        *  Selecciona todo el texto del area del tab en el que se encuentra en el momento
@@ -522,8 +601,8 @@ public class JavEditor extends Application {
        tabPane.autosize();
        tabPane.setLayoutX(0);
        tabPane.setLayoutY(24);
-       tabPane.setMaxHeight(TabPane.USE_COMPUTED_SIZE);
-       tabPane.setMaxWidth(TabPane.USE_COMPUTED_SIZE);
+       //tabPane.setMaxHeight(TabPane.USE_COMPUTED_SIZE);
+       //tabPane.setMaxWidth(TabPane.USE_COMPUTED_SIZE);
        tabPane.setMinHeight(TabPane.USE_COMPUTED_SIZE);
        tabPane.setMinWidth(TabPane.USE_COMPUTED_SIZE);
        tabPane.setPrefHeight(378);
@@ -534,7 +613,7 @@ public class JavEditor extends Application {
        tabPane.setRotationAxis(punto);
        
        //Tab que viene predeterminado
-       tab1 = new Tab("Sin título");
+       tab1 = new Tab("Sin Titulo");
        /**
        * Cuando se cierra este tab se elimina la dirección del archivo que tenga abierto y se pone a true
        * la variable primertab para condiciones necesarias de otras funciones
@@ -542,8 +621,10 @@ public class JavEditor extends Application {
        tab1.setOnClosed(new EventHandler<Event>(){
            @Override
            public void handle(Event t){
-               primertab=true;
-               pathArchivoActual.remove(0);
+               //Este si que permite entrar a la función archivocerrar ya que
+               //no vamos a saber cual es el archivo seleccionado por lo tanto ira directamente
+               //a la condición en la que se eliminan los datos del tab1
+               archivocerrar.handle(null);
            }
        });
        
@@ -560,7 +641,31 @@ public class JavEditor extends Application {
        tab1.setContent(area);
        tabPane.getTabs().add(tab1);
        tabPane.setPrefWidth(1024);
-       root.setOnKeyPressed( new EventHandler<KeyEvent>(){
+       
+       //TreeView
+        arbol = new TreeView();
+        arbol.setPrefHeight(20);
+        arbol.getSelectionModel().selectedItemProperty().addListener(new ChangeListener(){
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue){
+                TreeItem<String> selected = (TreeItem<String>) oldValue;
+                for(int i =0;i<tabPane.getTabs().size();i++){
+                    if(tabPane.getTabs().get(i).getText().compareTo(selected.getValue())==0){
+                          tabPane.getSelectionModel().select(i);
+                    }
+                }
+            }
+        });
+        
+        TreeItem<String> item = new TreeItem<String>(tab1.getText());
+        items.getChildren().add(item);
+        items.setExpanded(true);
+        items.setValue(" Archivos abiertos");
+        arbol.setRoot(items);
+
+        //Si una tecla es pulsada se almacena el codigo en la lista codigoTeclas y si hay mas de 1
+        //se realiza la comprobacion de las teclas pulsadas.
+        root.setOnKeyPressed( new EventHandler<KeyEvent>(){
            @Override
            public void handle(KeyEvent event){
                 codigoTeclas.add(event.getCode());
@@ -569,6 +674,7 @@ public class JavEditor extends Application {
                 }
            }
        });
+       //Si alguna tecla se suelta deja de ser pulsada se elimina de la lista
        root.setOnKeyReleased(new EventHandler<KeyEvent>(){
            @Override
            public void handle(KeyEvent event){
@@ -577,8 +683,9 @@ public class JavEditor extends Application {
        });
        
        //El panel de tabs y la barra de herramientas se añaden al panel root
-       root.getChildren().add(barra); 
-       root.getChildren().add(tabPane);
+       root.setLeft(arbol);
+       root.setTop(barra);
+       root.setCenter(tabPane);
         
         Scene scene = new Scene(root);
         
@@ -611,7 +718,7 @@ public class JavEditor extends Application {
         }
     }
     
-    /** actualizarArchivo()
+    /** int = actualizarArchivo()
      * 
      * @param direccion
      * @param archivo
@@ -619,25 +726,39 @@ public class JavEditor extends Application {
      * Actualiza el archivo que acabamos de abrir o guardar, 
      * almacenando la dirección de dicho archivo para luego poder guardarla
      * en un ArrayList. Tabién cambiamos el nombre del tab poniendo
-     * el nombre del archivo en cuestión
+     * el nombre del archivo en cuestión. Devuelve el nombre antiguo del archivo que
+     * se ha ha actualizado para asi poder eliminar dicho nombre del TreeView
      */
-    private void actualizarArchivo(String direccion, String archivo){
+    private String actualizarArchivo(String direccion, String archivo){
         boolean noseleccionado = false;
+        String s = "";
         for(int i=0;i<tabs.size();i++){
             if(tabs.get(i).isSelected()){
                 noseleccionado = true;
                 if(primertab){
+                    s = tabs.get(i).getText();
                     pathArchivoActual.set(i,direccion);
                 }else{
-                    pathArchivoActual.set(i+1,direccion);
+                    s = tabs.get(i).getText();
+                    pathArchivoActual.set(i+1,direccion);  
+                    
                 }
+                
                 tabs.get(i).setText(archivo);
+                if(!esparasobrescribir){
+                   s=tabs.get(i).getText();
+                }
             }
         }
         if(!noseleccionado){
+            s = tab1.getText();
             pathArchivoActual.set(0,direccion);
             tab1.setText(archivo);
+            if(!esparasobrescribir){
+                   s=tab1.getText();
+                }
         }
+        return s;
     }
     
     /** busquedaArchivo()
@@ -667,19 +788,35 @@ public class JavEditor extends Application {
          }
     }
     
+    private void actualizarArbol(String i){
+            for(int j=0;j<items.getChildren().size();j++){
+                if(i.compareTo(items.getChildren().get(j).getValue())==0){
+                    items.getChildren().remove(j);
+                    break;
+                }
+            }
+        
+        
+    }
     
        
-    
+    /** comprobarTeclas()
+    *
+    * Función creada para el manejo de las teclas pulsadas, las teclas que se pulsan y no se sueltan
+    * se almacenan en una lista, cuando esa lista tiene mas de un elemento llamamos a esta funcion
+    * que comprueba las teclas pulsadas, si la primera es la tecla CTRL pasa a comprobar la segunda
+    * y si es alguna de las utilizadas para atajos realiza la operación correspondiente, si no, elimina
+    * las teclas guardadas de la lista.
+    */
    private void comprobarTeclas(){
        if(codigoTeclas.get(0).equals(KeyCode.CONTROL)){
-           System.out.println("Llega");
            if(codigoTeclas.get(1)==KeyCode.N){
                pestañanueva.handle(null);
            }else if(codigoTeclas.get(1)==KeyCode.Z){
                seleccion=area.getSelectedText();
                 if(!seleccion.isEmpty()){
                      seleccionarArea();
-                    areaAUtilizar.deselect();
+                     areaAUtilizar.deselect();
                 }
            }else if(codigoTeclas.get(1)==KeyCode.X){
                seleccionarArea();
@@ -694,9 +831,6 @@ public class JavEditor extends Application {
                seleccionarArea();
                areaAUtilizar.appendText(seleccion);
            }else if(codigoTeclas.get(1)==KeyCode.T){
-               seleccionarArea();
-               areaAUtilizar.selectAll();
-           }else if(codigoTeclas.get(1)==KeyCode.A){
                archivocerrar.handle(null);
            }else if(codigoTeclas.get(1)==KeyCode.O){
                abrirarchivo.handle(null);
@@ -722,4 +856,6 @@ public class JavEditor extends Application {
          
         launch(args);
     }
+
+    
 }

@@ -39,7 +39,7 @@ public class OwnFileChooser extends JFileChooser{
 
                    @Override
                    public String getDescription() {
-                       String str = "txt (*.txt)"; 
+                       String str = "Texto (*.txt)"; 
                        return str;//To change body of generated methods, choose Tools | Templates.
                    }
                };
@@ -51,7 +51,7 @@ public class OwnFileChooser extends JFileChooser{
 
                    @Override
                    public String getDescription() {
-                       String str = "javascript (*.js)"; 
+                       String str = "JavaScript (*.js)"; 
                        return str;//To change body of generated methods, choose Tools | Templates.
                    }
                
@@ -64,7 +64,7 @@ public class OwnFileChooser extends JFileChooser{
 
                    @Override
                    public String getDescription() {
-                       String str = "html (*.html)"; 
+                       String str = "HTML (*.html)"; 
                        return str;//To change body of generated methods, choose Tools | Templates.
                    }
                
@@ -77,7 +77,7 @@ public class OwnFileChooser extends JFileChooser{
 
                    @Override
                    public String getDescription() {
-                       String str = "php (*.php)"; 
+                       String str = "Php (*.php)"; 
                        return str;//To change body of generated methods, choose Tools | Templates.
                    }
                
@@ -90,7 +90,7 @@ public class OwnFileChooser extends JFileChooser{
 
                    @Override
                    public String getDescription() {
-                       String str = "css(*.css)"; 
+                       String str = "CSS (*.css)"; 
                        return str;//To change body of generated methods, choose Tools | Templates.
                    }
                
@@ -103,7 +103,7 @@ public class OwnFileChooser extends JFileChooser{
 
                    @Override
                    public String getDescription() {
-                       String str = "xml (*.xml)"; 
+                       String str = "Xml (*.xml)"; 
                        return str;//To change body of generated methods, choose Tools | Templates.
                    }
                
@@ -116,7 +116,20 @@ public class OwnFileChooser extends JFileChooser{
 
                    @Override
                    public String getDescription() {
-                       String str = "c (*.c)"; 
+                       String str = "C (*.c)"; 
+                       return str;//To change body of generated methods, choose Tools | Templates.
+                   }
+               
+        };
+           FileFilter java = new FileFilter(){
+             @Override
+                   public boolean accept(File f) {
+                       return f.getName().endsWith(".java"); //To change body of generated methods, choose Tools | Templates.
+                   }
+
+                   @Override
+                   public String getDescription() {
+                       String str = "Java (*.java)"; 
                        return str;//To change body of generated methods, choose Tools | Templates.
                    }
                
@@ -124,6 +137,7 @@ public class OwnFileChooser extends JFileChooser{
            
        
         addChoosableFileFilter(txt);
+        addChoosableFileFilter(java);
         addChoosableFileFilter(html);
         addChoosableFileFilter(javascript);
         addChoosableFileFilter(php);
