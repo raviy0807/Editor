@@ -38,6 +38,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -63,6 +64,7 @@ public class JavEditor extends Application {
     private Menu ayuda;
     private Menu preferencias;
     private MenuItem abrir;
+    private MenuItem abrirproject;
     private MenuItem nuevaPestaña;
     private MenuItem guardar;
     private MenuItem guardarcomo;
@@ -84,9 +86,10 @@ public class JavEditor extends Application {
     
     
     //Variables para el correcto funcionamiento del programa
-
+    private int clicks = 0;
     private OwnFileChooser chooser;
     private ArrayList<String> pathArchivoActual = new ArrayList<String>();
+    private ArrayList<String> pathProyectos = new ArrayList<String>();
     private String archivoUtilizando;
     private String archivoGuardado;
     private String seleccion;
@@ -103,6 +106,8 @@ public class JavEditor extends Application {
     private ObservableList list =  FXCollections.observableArrayList();
     private int numeroArbol = 0;
     private TreeItem<String> items = new TreeItem<String>();
+    private TreeItem<String> projects = new TreeItem<String>();
+    private TreeItem<String> rootItem = new TreeItem<String>();
 
     //EventHandlers
     private EventHandler<ActionEvent> archivocerrar;
@@ -111,7 +116,6 @@ public class JavEditor extends Application {
     private EventHandler<ActionEvent> comoguardar;
     private EventHandler<ActionEvent> abrirarchivo;
     private EventHandler<ActionEvent> guardararchivo;
-    private EventHandler<ActionEvent> loquesea;
 
    
     
@@ -174,19 +178,17 @@ public class JavEditor extends Application {
                chooser = new OwnFileChooser();
                chooser.setInitialDirectory(new File("C:\\Users\\Usuario\\Desktop"));
                File f = chooser.ownShowOpenDialog();
-            
-               try{
+               if(f!=null){
+                try{
                  
                  esparaabrir=true;
                  pestañanueva.handle(null);
                  seleccionarArea();
                  esparaabrir=false;
-               
                  
                  String n = actualizarArchivo(f.getAbsolutePath(),f.getName());
                  TreeItem<String> item = new TreeItem<String>(f.getName());
                  items.getChildren().add(item);
-                 arbol.setRoot(items);
                  FileReader fr = new FileReader(f);
                  BufferedReader br = new BufferedReader(fr);
                 
@@ -195,12 +197,31 @@ public class JavEditor extends Application {
                     areaAUtilizar.appendText(parte + "\n");
                  }
                 
-               }catch(Exception e){
+                }catch(Exception e){
                   JOptionPane.showMessageDialog(null,"Error: No se ha podido abrir el archivo");
-               }    
+                }    
+               }
+           }
+           
+       });
+       abrirproject = new MenuItem("Abrir proyecto");
+       abrirproject.setOnAction(new EventHandler<ActionEvent>(){
+           @Override
+           public void handle (ActionEvent t){
+               chooser = new OwnFileChooser();
+               chooser.setInitialDirectory(new File("C:\\Users\\Usuario\\Desktop"));
+               File f = chooser.ownShowOpenProjectsDialog();
+               
+               try{
+                   TreeItem<String> item = new TreeItem<String>(f.getName());
+                   projects.getChildren().add(item);
+                   abrirProyecto(f,item);
+                   
+               }catch(Exception e){
+                   JOptionPane.showMessageDialog(null,"Error: No se ha podido abrir el proyecto");
+               }
            }
        });
-
        /**
        * Guarda un archivo, en el caso de que el archivo haya sido abierto y ya existiese, se guardará en
        * la dirección que le corresponda, en el caso de que no existiese se llamará a la función guardarComo
@@ -258,7 +279,6 @@ public class JavEditor extends Application {
 
                     TreeItem<String> item = new TreeItem<String>(f.getName());
                     items.getChildren().add(item);
-                    arbol.setRoot(items);
                     FileWriter fw = new FileWriter(f);
                     BufferedWriter bw = new BufferedWriter(fw);
                     seleccionarArea();
@@ -377,7 +397,6 @@ public class JavEditor extends Application {
         if(!esparaabrir){
          TreeItem<String> item = new TreeItem<String>("Sin Titulo");
          items.getChildren().add(item);
-         arbol.setRoot(items);
         }
         }
        });
@@ -466,7 +485,7 @@ public class JavEditor extends Application {
                
            }
        });
-       archivo.getItems().addAll(nuevaPestaña,separate[0],abrir,guardar,guardarcomo,separate[1],cerrarArchivo,cerrarTodo,separate[2],cerrar);
+       archivo.getItems().addAll(nuevaPestaña,separate[0],abrir,abrirproject,guardar,guardarcomo,separate[1],cerrarArchivo,cerrarTodo,separate[2],cerrar);
        edicion = new Menu("Edición");
        
        //Submenús de "Edición"
@@ -645,24 +664,68 @@ public class JavEditor extends Application {
        //TreeView
         arbol = new TreeView();
         arbol.setPrefHeight(20);
-        arbol.getSelectionModel().selectedItemProperty().addListener(new ChangeListener(){
+        arbol.setOnMouseClicked(new EventHandler<MouseEvent>(){
             @Override
-            public void changed(ObservableValue observable, Object oldValue, Object newValue){
-                TreeItem<String> selected = (TreeItem<String>) oldValue;
-                for(int i =0;i<tabPane.getTabs().size();i++){
-                    if(tabPane.getTabs().get(i).getText().compareTo(selected.getValue())==0){
-                          tabPane.getSelectionModel().select(i);
-                    }
-                }
+            public void handle(MouseEvent event){
+                if(event.getClickCount()==1){
+                 TreeItem<String> elemento = (TreeItem<String>) arbol.getSelectionModel().getSelectedItem();
+                 for(int i=0;i<tabPane.getTabs().size();i++){
+                     if(elemento.getValue().compareTo(tabPane.getTabs().get(i).getText())==0){
+                        tabPane.getSelectionModel().select(tabPane.getTabs().get(i));
+                        break;
+                     } 
+                 }
+                }else if(event.getClickCount()==2){
+                  TreeItem<String> elemento = (TreeItem<String>) arbol.getSelectionModel().getSelectedItem();
+                  boolean nohay=false;
+                  for(int i=0;i<tabPane.getTabs().size();i++){
+                     if(elemento.getValue().compareTo(tabPane.getTabs().get(i).getText())==0){
+                        nohay=true;
+                        tabPane.getSelectionModel().select(tabPane.getTabs().get(i));
+                        break;
+                     }
+                     
+                  }
+                  if(!nohay){
+                      esparaabrir=true;
+                      pestañanueva.handle(null);
+                      esparaabrir=false;
+                      seleccionarArea();
+                      
+                      for(int i =0;i<pathProyectos.size();i++){
+                         int n = pathProyectos.get(i).lastIndexOf("\\");
+                         int s = pathProyectos.get(i).length();
+                         String str = pathProyectos.get(i);
+                         String stra = str.substring(n+1,s);
+                         System.out.println(stra);
+                         if(elemento.getValue().compareTo(stra)==0){
+                            File f = new File(pathProyectos.get(i));
+                            String o = actualizarArchivo(f.getAbsolutePath(),f.getName());
+                            try{
+                                FileReader fr = new FileReader(f);
+                                BufferedReader br = new BufferedReader(fr);
+                                String parte = null;
+                                while((parte=br.readLine())!=null){
+                                    areaAUtilizar.appendText(parte + "\n");
+                                }
+                            }catch(Exception e){
+                                JOptionPane.showMessageDialog(null,"Error: No se ha podido abrir el archivo");
+                            }
+                         }
+                      }
+                   }
+                  }
             }
         });
-        
         TreeItem<String> item = new TreeItem<String>(tab1.getText());
         items.getChildren().add(item);
         items.setExpanded(true);
         items.setValue(" Archivos abiertos");
-        arbol.setRoot(items);
-
+        projects.setExpanded(true);
+        projects.setValue(" Proyectos");
+        rootItem.getChildren().addAll(items,projects);
+        rootItem.setExpanded(true);
+        arbol.setRoot(rootItem);
         //Si una tecla es pulsada se almacena el codigo en la lista codigoTeclas y si hay mas de 1
         //se realiza la comprobacion de las teclas pulsadas.
         root.setOnKeyPressed( new EventHandler<KeyEvent>(){
@@ -799,6 +862,25 @@ public class JavEditor extends Application {
         
     }
     
+    private void abrirProyecto(File f,TreeItem item){
+                       
+   
+        File[] lista = f.listFiles();
+        String[] listanombres = f.list();
+        
+        for(int i =0;i<f.listFiles().length;i++){
+            TreeItem<String> item2 = new TreeItem<String>(lista[i].getName());
+            item.getChildren().add(item2);
+            if(lista[i].isDirectory()){
+                abrirProyecto(lista[i],item2);
+            }
+            if(lista[i].isFile()){
+                pathProyectos.add(lista[i].getAbsolutePath());
+            }
+            
+        }
+        
+    }
        
     /** comprobarTeclas()
     *

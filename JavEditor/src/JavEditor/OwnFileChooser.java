@@ -7,6 +7,8 @@ package JavEditor;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -159,25 +161,36 @@ public class OwnFileChooser extends JFileChooser{
     }
     
     public File ownShowSaveDialog(){
-        File f;
+        File f = null;
         int returnval;
         returnval = super.showSaveDialog(this);
-        if(returnval==JFileChooser.CANCEL_OPTION){
-            
+        if(returnval==JFileChooser.APPROVE_OPTION){
+            f = super.getSelectedFile();  
         }
-        f = super.getSelectedFile();
+        return f;
+    }
+    public File ownShowOpenDialog(){
+        File f = null;
+        int returnval;
+        returnval = super.showOpenDialog(this);
+        if(returnval==JFileChooser.APPROVE_OPTION){
+          f = super.getSelectedFile();
+        }
+        
         return f;
         
     }
-    public File ownShowOpenDialog(){
-        File f;
-        int returnval;
-        returnval = super.showOpenDialog(this);
-        if(returnval==JFileChooser.CANCEL_OPTION){
+    
+    public File ownShowOpenProjectsDialog(){
+         File directory=null;
+         int returnval;
+         super.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+         returnval = super.showOpenDialog(this);
+         if(returnval==JFileChooser.APPROVE_OPTION){
+            directory = super.getSelectedFile(); 
+         }
           
-        }
-        f = super.getSelectedFile();
-        return f;
         
+        return directory;
     }
 }
