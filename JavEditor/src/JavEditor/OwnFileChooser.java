@@ -4,6 +4,7 @@
  */
 package JavEditor;
 
+
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +17,7 @@ import javax.swing.filechooser.FileFilter;
 
 /**
  *
- * @author Usuario
+ * @author Javier González Bodas
  */
 public class OwnFileChooser extends JFileChooser{
     
