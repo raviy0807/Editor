@@ -401,7 +401,6 @@ public class JavEditor extends Application {
                                 if(lineas.get(s).size()>40){
                                     observablelists.get(s).setPrefHeight(17.2*lineas.get(s).size());
                                     areaAUtilizar.setMaxHeight(17.2*lineas.get(s).size());
-                                    System.out.println(areaAUtilizar.getHeight());
                                 }
                                 lineas.get(s).add(lineas.get(s).size(), Integer.toString(lineas.get(s).size()+1));
                             } else {
@@ -449,7 +448,6 @@ public class JavEditor extends Application {
                 scrll.setContent(bar);
                 scrll.setContent(bor);
                 vox.getChildren().add(scrll);
-                vox.setPadding(new Insets(0,0,0,0));
                 //Crea el nuevo tab
                 Tab tabNuevo = new Tab("Sin Titulo");
 
@@ -808,21 +806,30 @@ public class JavEditor extends Application {
         //Se crea un nuevo area predeterminado el cual se introduce en el primer tab creado y este se añade al
         //panel de tabs
         area = new TextArea();
-        area.setPrefHeight(800);
+        area.setWrapText(true);
+        area.setPrefHeight(688);
         area.setPrefWidth(1024);
         area.setMinHeight(TextArea.USE_COMPUTED_SIZE);
         area.setMaxHeight(TextArea.USE_COMPUTED_SIZE);
         area.setMinWidth(TextArea.USE_COMPUTED_SIZE);
         area.setMaxWidth(TextArea.USE_COMPUTED_SIZE);
-        area.setStyle("-fx-font:15pt \"Times New Roman\";" + "-fx-focus-color: transparent");
+        area.getStyleClass().add("textArea");
         area.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
                 int s = seleccionarArea();
                 if (event.getCode() == KeyCode.ENTER) {
                     if (primertab) {
+                        if(lineas.get(s).size()>40){
+                           observablelists.get(s).setPrefHeight(17.2*lineas.get(s).size());
+                           areaAUtilizar.setMaxHeight(17.2*lineas.get(s).size());
+                        }
                         lineas.get(s).add(lineas.get(s).size(), Integer.toString(lineas.get(s).size()+1));
                     } else {
+                        if(lineas.get(s+1).size()>40){
+                           observablelists.get(s+1).setPrefHeight(17.2*lineas.get(s+1).size());
+                           areaAUtilizar.setMaxHeight(17.2*lineas.get(s+1).size());
+                         }
                         lineas.get(s + 1).add(lineas.get(s + 1).size(), Integer.toString(lineas.get(s + 1).size()+1));
                     }
                 }
@@ -846,13 +853,17 @@ public class JavEditor extends Application {
                    tabPane.getTabs().get(o).setText(tabPane.getTabs().get(o).getText()+"*");
                }
         });
-        BorderPane bor = new BorderPane();
         
+
+        ScrollPane pane = new ScrollPane();
+        ScrollBar scroll = new ScrollBar();
+        scroll.setOrientation(Orientation.VERTICAL);
+        scroll.setPrefHeight(1024);
+        BorderPane bor = new BorderPane();
         ObservableList<String> cl = FXCollections.observableArrayList();
+        cl.add(0,"1");
         VBox b = new VBox();
         ListView<String> l = new ListView<String>();
-        
-        cl.add(0,"1");
         lineas.add(0,cl);
         l.setCellFactory(new Callback<ListView<String>, 
             ListCell<String>>() {
@@ -866,23 +877,18 @@ public class JavEditor extends Application {
             }
         );
         l.setItems(cl);
-        l.setPrefWidth(25);
-        l.autosize();
-        l.setPrefHeight(700);
-        l.setMaxSize(ListView.USE_COMPUTED_SIZE, ListView.USE_COMPUTED_SIZE);
-        l.setMinSize(ListView.USE_COMPUTED_SIZE, ListView.USE_COMPUTED_SIZE);
+        l.setPrefWidth(50);
+        l.setPrefHeight(688);
+        l.getStyleClass().add("listview");
         observablelists.add(0,l);
-        b.getChildren().add(observablelists.get(0));
+        b.getChildren().add(l);
         b.setPadding(new Insets(3,-1,0,0));
-        b.autosize();
-        b.setMinSize(VBox.USE_COMPUTED_SIZE,VBox.USE_COMPUTED_SIZE);
-        b.setMaxSize(VBox.USE_COMPUTED_SIZE,VBox.USE_COMPUTED_SIZE);
         bor.setLeft(b);
         bor.setCenter(area);
-        bor.autosize();
         bor.setPadding(new Insets(-1,-1,-1,-1));
-        tab1.setContent(bor);
-        tab1.setStyle("-fx-background: RED;");
+        pane.setContent(scroll);
+        pane.setContent(bor);
+        tab1.setContent(pane);
         tabPane.getTabs().add(tab1);
         tabPane.setPrefWidth(1024);
 
