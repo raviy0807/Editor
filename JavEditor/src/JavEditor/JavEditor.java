@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +23,7 @@ import javafx.geometry.Point3D;
 import javafx.event.Event;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -33,6 +35,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -97,11 +101,15 @@ public class JavEditor extends Application {
     private MenuItem fuente;
     private MenuItem sobre;
     
-     //Variables para el correcto funcionamiento del programa
-    private ArrayList<ObservableList<TextFieldListCell>> lineas = new ArrayList<ObservableList<TextFieldListCell>>();
-    private ObservableList<VBox> boxes = FXCollections.observableArrayList();
-    private OwnFileChooser chooser;                                       //Selector de archivos
-    private ArrayList<String> pathArchivoActual = new ArrayList<String>();//Almaceno paths de archivos abiertos
+    //Variables para el correcto funcionamiento del programa
+    /*Contiene observablelists que contienen los elementos de las listas de numeros*/
+    private ArrayList<ObservableList<String>> lineas = new ArrayList<ObservableList<String>>();
+    /*Contiene las listas para cada tab*/
+    private ArrayList<ListView<String>> observablelists = new ArrayList<ListView<String>>();
+    //Selector de archivos
+    private OwnFileChooser chooser;                                       
+    private ArrayList<String> pathArchivoActual = new ArrayList<String>();
+    //Almaceno paths de archivos abiertos
     private ArrayList<String> pathProyectos = new ArrayList<String>();    //Almaceno paths de archivos de proyectos
     private String archivoUtilizando;                                     //Path del archivo que esta abierto y utilizandose
     private String archivoGuardado;                                       //Path del archivo guardado
@@ -117,7 +125,7 @@ public class JavEditor extends Application {
     private TreeItem<String> items = new TreeItem<String>();              //Archivos abiertos en el TreeView
     private TreeItem<String> projects = new TreeItem<String>();           //Proyectos abiertos en el TreeView
     private TreeItem<String> rootItem = new TreeItem<String>();           //Raiz del TreeView
-    private Map<TextArea, Boolean> modificados;
+    private Map<TextArea, String> modificados;
     //EventHandlers
     private EventHandler<ActionEvent> archivocerrar;                      //Para cerrar un tab seleccionado
     private EventHandler<ActionEvent> todoscerrar;                        //Para cerrar todos los tabs
@@ -130,7 +138,7 @@ public class JavEditor extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-
+        modificados = new HashMap<TextArea, String>();
         //Inicializo la posición cero de las direcciones de archivos a vacio(explicado mas abajo). Esta
         //corresponde al tab que se crea por defecto(tab1)
         pathArchivoActual.add(0, " ");
@@ -218,17 +226,14 @@ public class JavEditor extends Application {
                         while ((parte = br.readLine()) != null) {
                                 areaAUtilizar.appendText(parte + "\n");
                                 if(i!=1){
-                                TextFieldListCell c = new TextFieldListCell();
-                                c.setText(Integer.toString(i));
-                                c.setFont(Font.font("Times New Roman",11.35));
-                                c.setPrefSize(20, 13);
-                                lineas.get(a).add(i-1,c);
-                                boxes.get(a).getChildren().setAll(lineas.get(a));
+                                  lineas.get(a).add(i-1,Integer.toString(i));
+                                if(i>40){
+                                    observablelists.get(a).setPrefHeight(17.2*lineas.get(a).size());
+                                    areaAUtilizar.setMaxHeight(17.2*lineas.get(a).size());
+                                }
                              }
                              i++;
                         }
-
-                        System.out.println(i);
                     } catch (Exception e) {
                         JOptionPane.showMessageDialog(null, "Error: No se ha podido abrir el archivo");
                     }
@@ -353,59 +358,98 @@ public class JavEditor extends Application {
             @Override
             public void handle(ActionEvent t) {
 
-
+                                              
                 //Crea un nuevo area de texto para incluirlo en la nueva pestaña
                 TextArea areaNueva = new TextArea();
+                areaNueva.setWrapText(true);
                 areas.add(numeroTab, areaNueva);
-                areas.get(numeroTab).setPrefHeight(800);
+                areas.get(numeroTab).setPrefHeight(688);
                 areas.get(numeroTab).setPrefWidth(1024);
                 areas.get(numeroTab).setMinHeight(TextArea.USE_COMPUTED_SIZE);
                 areas.get(numeroTab).setMaxHeight(TextArea.USE_COMPUTED_SIZE);
                 areas.get(numeroTab).setMaxWidth(TextArea.USE_COMPUTED_SIZE);
                 areas.get(numeroTab).setMinWidth(TextArea.USE_COMPUTED_SIZE);
-                areas.get(numeroTab).setStyle("-fx-font:15pt \"Times New Roman\";" + "-fx-focus-color: transparent;");
-                /*areas.get(numeroTab).textProperty().addListener(new ChangeListener<String>(){
+                areas.get(numeroTab).getStyleClass().add("textArea");
+                
+                areas.get(numeroTab).textProperty().addListener(new ChangeListener<String>(){
                  @Override
                  public void changed(final ObservableValue<? extends String> observable, final String oldValue, final String newValue){
-                 seleccionarArea();
-                 modificados.put(areaAUtilizar,true); 
-                 }
+                   int o = seleccionarArea();
+                   boolean control = false;
+                  
+                  if(!modificados.containsKey(areaAUtilizar)){
+                       modificados.put(areaAUtilizar, "True");
+                       control = true;
+                  }
+                   
+                   if(primertab){
+                       o = o;
+                   }else{
+                       o = o+1;
+                   }
+                   if(control)
+                   tabPane.getTabs().get(o).setText(tabPane.getTabs().get(o).getText()+"*");
+                  }
                  });
-                 */
+                 
                 areas.get(numeroTab).setOnKeyPressed(new EventHandler<KeyEvent>() {
                     @Override
                     public void handle(KeyEvent event) {
                         int s = seleccionarArea();
                         if (event.getCode() == KeyCode.ENTER) {
                             if (primertab) {
-                                //lineas.get(s).add(lineas.get(s).size(), Integer.toString(lineas.get(s).size()));
+                                if(lineas.get(s).size()>40){
+                                    observablelists.get(s).setPrefHeight(17.2*lineas.get(s).size());
+                                    areaAUtilizar.setMaxHeight(17.2*lineas.get(s).size());
+                                    System.out.println(areaAUtilizar.getHeight());
+                                }
+                                lineas.get(s).add(lineas.get(s).size(), Integer.toString(lineas.get(s).size()+1));
                             } else {
-                                //lineas.get(s + 1).add(lineas.get(s + 1).size(), Integer.toString(lineas.get(s + 1).size()));
+                                if(lineas.get(s+1).size()>40){
+                                    observablelists.get(s+1).setPrefHeight(17.2*lineas.get(s+1).size());
+                                    areaAUtilizar.setMaxHeight(17.2*lineas.get(s+1).size());
+                                }
+                                lineas.get(s + 1).add(lineas.get(s + 1).size(), Integer.toString(lineas.get(s + 1).size()+1));
                             }
                         }
                     }
                 });
-
+                VBox vox = new VBox();
+                /*Para poder mover la lista de numeros y el area a la vez*/
+                ScrollPane scrll = new ScrollPane();
+                ScrollBar bar = new ScrollBar();
+                bar.setOrientation(Orientation.VERTICAL);
+                bar.setPrefHeight(1024);
+                /*Incluyo en el borderpane a la izquierda la lista de numeros y en el centro nada*/
                 BorderPane bor = new BorderPane();
-                ObservableList<TextFieldListCell> tf = FXCollections.observableArrayList();
-                TextFieldListCell cell = new TextFieldListCell();
-                VBox b = new VBox();
-                cell.setPrefSize(20,1);
-                cell.setFont(Font.font("Times New Roman",11.35));
-                cell.setText("1");
-                cell.setOnMouseClicked( new EventHandler<MouseEvent>(){
-                    @Override
-                    public void handle (MouseEvent event){
-                        System.out.println("Hola buenas");
+                /*VBox para poder darle un padding al lista de numeros*/
+                VBox v = new VBox();
+                ObservableList<String> tf = FXCollections.observableArrayList();
+                ListView<String> l = new ListView<String>(); 
+                l.setCellFactory(new Callback<ListView<String>, 
+                ListCell<String>>() {
+                    @Override 
+                    public ListCell<String> call(ListView<String> list) {
+                         OwnListCell c = new OwnListCell();
+                         c.setPrefSize(20,17.2);
+                         return c;
                     }
-                });
-                tf.add(0,cell);
-                b.getChildren().addAll(tf);
-                b.setSpacing(-2);
-                b.setPadding(new Insets(3,0,0,0));
-                bor.setLeft(b);
+                  }
+                );
+                l.setItems(tf);
+                l.setPrefWidth(50);
+                l.setPrefHeight(688);
+                l.getStyleClass().add("listview");
+                tf.add(0,"1");
+                v.getChildren().add(l);
+                v.setPadding(new Insets(3,-1,0,0));
+                bor.setLeft(v);
                 bor.setCenter(areaNueva);
-
+                bor.setPadding(new Insets(-1,-1,-1,-1));
+                scrll.setContent(bar);
+                scrll.setContent(bor);
+                vox.getChildren().add(scrll);
+                vox.setPadding(new Insets(0,0,0,0));
                 //Crea el nuevo tab
                 Tab tabNuevo = new Tab("Sin Titulo");
 
@@ -424,6 +468,10 @@ public class JavEditor extends Application {
                     @Override
                     public void handle(Event t) {
                         String s = "";
+                        seleccionarArea();
+                        if(modificados.containsKey(areaAUtilizar)){
+                            JOptionPane.showConfirmDialog(null, "Quieres cerrar el archivo sin guardar?");
+                        }
                         for (int i = 0; i < tabs.size(); i++) {
                             if (tabs.get(i) != t.getSource()) {
                                 continue;
@@ -452,7 +500,7 @@ public class JavEditor extends Application {
 
                 tabs.add(numeroTab, tabNuevo);
                 tabs.get(numeroTab).setClosable(true);
-                tabs.get(numeroTab).setContent(bor);
+                tabs.get(numeroTab).setContent(scrll);
                 tabs.get(numeroTab).selectedProperty();
 
 
@@ -465,11 +513,11 @@ public class JavEditor extends Application {
                 if (primertab) {
                     tabPane.getTabs().add(numeroTab, tabs.get(numeroTab));
                     lineas.add(numeroTab,tf);
-                    boxes.add(numeroTab, b);
+                    observablelists.add(numeroTab,l);
                 } else {
                     tabPane.getTabs().add(numeroTab + 1, tabs.get(numeroTab));
                     lineas.add(numeroTab+1,tf);
-                    boxes.add(numeroTab+1, b);
+                    observablelists.add(numeroTab+1,l);
                     numeroTab++;
                 }
 
@@ -504,6 +552,15 @@ public class JavEditor extends Application {
             public void handle(ActionEvent t) {
                 String s;
                 boolean noestab = false;
+                seleccionarArea();
+                if(modificados.containsKey(areaAUtilizar)){
+                   int n = JOptionPane.showConfirmDialog(null, "Do you want save the file?");
+                   if(n==JOptionPane.CANCEL_OPTION){
+                       return;
+                   }else if(n==JOptionPane.YES_OPTION){
+                       comoguardar.handle(null);
+                   }
+                }
                 for (int i = 0; i < tabs.size(); i++) {
                     if (!tabs.get(i).isSelected()) {
                         continue;
@@ -557,6 +614,15 @@ public class JavEditor extends Application {
             public void handle(ActionEvent t) {
                 int longitudTabPane = tabPane.getTabs().size();
                 for (int i = 0; i < longitudTabPane; i++) {
+                    seleccionarArea();
+                    if(modificados.containsKey(areaAUtilizar)){
+                      int n = JOptionPane.showConfirmDialog(null, "Do you want save the file?");
+                      if(n==JOptionPane.CANCEL_OPTION){
+                         return;
+                      }else if(n==JOptionPane.YES_OPTION){
+                         comoguardar.handle(null);
+                      }
+                    }
                     if (items.getChildren().size() > 0) {
                         items.getChildren().remove(0);
                     }
@@ -709,6 +775,7 @@ public class JavEditor extends Application {
         tabPane.autosize();
         tabPane.setLayoutX(0);
         tabPane.setLayoutY(24);
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.ALL_TABS);
         //tabPane.setMaxHeight(TabPane.USE_COMPUTED_SIZE);
         //tabPane.setMaxWidth(TabPane.USE_COMPUTED_SIZE);
         tabPane.setMinHeight(TabPane.USE_COMPUTED_SIZE);
@@ -747,40 +814,73 @@ public class JavEditor extends Application {
         area.setMaxHeight(TextArea.USE_COMPUTED_SIZE);
         area.setMinWidth(TextArea.USE_COMPUTED_SIZE);
         area.setMaxWidth(TextArea.USE_COMPUTED_SIZE);
-        area.setStyle("-fx-font:13pt \"Lucida Console\";" + "-fx-focus-color: transparent");
+        area.setStyle("-fx-font:15pt \"Times New Roman\";" + "-fx-focus-color: transparent");
         area.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
                 int s = seleccionarArea();
                 if (event.getCode() == KeyCode.ENTER) {
                     if (primertab) {
-                        //lineas.get(s).add(lineas.get(s).size(), Integer.toString(lineas.get(s).size()));
+                        lineas.get(s).add(lineas.get(s).size(), Integer.toString(lineas.get(s).size()+1));
                     } else {
-                        //lineas.get(s + 1).add(lineas.get(s + 1).size(), Integer.toString(lineas.get(s + 1).size()));
+                        lineas.get(s + 1).add(lineas.get(s + 1).size(), Integer.toString(lineas.get(s + 1).size()+1));
                     }
                 }
             }
         });
+        area.textProperty().addListener(new ChangeListener<String>(){
+           @Override
+           public void changed(final ObservableValue<? extends String> observable, final String oldValue, final String newValue){
+              int o = seleccionarArea();
+              boolean control = false; 
+              if(!modificados.containsKey(areaAUtilizar)){
+                 modificados.put(areaAUtilizar, "True");
+                 control = true;
+               }
+               if(primertab){
+                   o = o;
+               }else{
+                   o = o+1;
+               }
+               if(control)
+                   tabPane.getTabs().get(o).setText(tabPane.getTabs().get(o).getText()+"*");
+               }
+        });
         BorderPane bor = new BorderPane();
         
-        ObservableList<TextFieldListCell> cl = FXCollections.observableArrayList();
-        TextFieldListCell cell = new TextFieldListCell();
-        VBox b1 = new VBox();
-        boxes.add(0, b1);
+        ObservableList<String> cl = FXCollections.observableArrayList();
+        VBox b = new VBox();
+        ListView<String> l = new ListView<String>();
+        
+        cl.add(0,"1");
         lineas.add(0,cl);
-        cell.setPrefSize(20,13);
-        cell.setText("1");
-        cell.setOnMouseClicked( new EventHandler<MouseEvent>(){
-            @Override
-            public void handle (MouseEvent event){
-                System.out.println("Hola buenas");
+        l.setCellFactory(new Callback<ListView<String>, 
+            ListCell<String>>() {
+                @Override 
+                public ListCell<String> call(ListView<String> list) {
+                    
+                    OwnListCell c = new OwnListCell();
+                    c.setPrefSize(20,17.2);
+                    return c;
+                }
             }
-        });
-        cl.add(0,cell);
-        boxes.get(0).getChildren().addAll(lineas.get(0));
-        bor.setLeft(boxes.get(0));
+        );
+        l.setItems(cl);
+        l.setPrefWidth(25);
+        l.autosize();
+        l.setPrefHeight(700);
+        l.setMaxSize(ListView.USE_COMPUTED_SIZE, ListView.USE_COMPUTED_SIZE);
+        l.setMinSize(ListView.USE_COMPUTED_SIZE, ListView.USE_COMPUTED_SIZE);
+        observablelists.add(0,l);
+        b.getChildren().add(observablelists.get(0));
+        b.setPadding(new Insets(3,-1,0,0));
+        b.autosize();
+        b.setMinSize(VBox.USE_COMPUTED_SIZE,VBox.USE_COMPUTED_SIZE);
+        b.setMaxSize(VBox.USE_COMPUTED_SIZE,VBox.USE_COMPUTED_SIZE);
+        bor.setLeft(b);
         bor.setCenter(area);
         bor.autosize();
+        bor.setPadding(new Insets(-1,-1,-1,-1));
         tab1.setContent(bor);
         tab1.setStyle("-fx-background: RED;");
         tabPane.getTabs().add(tab1);
@@ -942,8 +1042,9 @@ public class JavEditor extends Application {
         root.setLeft(arbol);
         root.setTop(barra);
         root.setCenter(tabPane);
-
+        
         Scene scene = new Scene(root);
+        scene.getStylesheets().add("/JavEditor/JavEditor.css");
         Image imagen = new Image("Icono.gif", 10, 10, false, false);
         primaryStage.getIcons().add(imagen);
         primaryStage.setTitle("JavEditor");

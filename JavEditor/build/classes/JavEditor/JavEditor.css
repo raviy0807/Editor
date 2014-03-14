@@ -9,11 +9,27 @@
 root { 
     display: block;
 }
-.menu{
+.menu {
     fx-background-color:red;
 }
-.menuitem{
+.menuitem {
     -fx-background-color: red;
     -fx-font-size:60pt;
 }
+.listview .scroll-bar:vertical {
+    -fx-opacity:0;
+    -fx-background-color: transparent;
+    -fx-padding: -9px;
+}
+.listview {
+}
+.textArea .scroll-bar:vertical {
+    -fx-opacity:0;
+    -fx-background-color: transparent;
+}
 
+.textArea { 
+    -fx-font:15pt "Times New Roman"; 
+    -fx-focus-color: transparent;
+    -fx-alignment: top-left;
+}
