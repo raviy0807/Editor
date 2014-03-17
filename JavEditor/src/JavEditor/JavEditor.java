@@ -205,7 +205,7 @@ public class JavEditor extends Application {
 
                         //Actualizazo el arraylist pathArchivoActual e incluyo el nombre en el treeview
                         actualizarArchivo(f.getAbsolutePath(), f.getName());
-                        TreeItem<String> item = new TreeItem<String>(f.getName());
+                        TreeItem<String> item = new TreeItem<String>(f.getName(),new ImageView( new Image("Texto.gif")));
 
                         //Como al abrir una nueva pestaña hemos actualizado el numeroTab
                         //Si no esta tab1 la posicion sera numeroTab-1
@@ -253,7 +253,7 @@ public class JavEditor extends Application {
                 File f = chooser.ownShowOpenProjectsDialog();
 
                 try {
-                    TreeItem<String> item = new TreeItem<String>(f.getName());
+                    TreeItem<String> item = new TreeItem<String>(f.getName(),new ImageView( new Image("Carpeta.gif")));
                     projects.getChildren().add(item);
                     abrirProyecto(f, item);
 
@@ -528,7 +528,7 @@ public class JavEditor extends Application {
 
                 //Si abrimos una nueva pestaña como nuevo archivo 
                 if (!esparaabrir) {
-                    TreeItem<String> item = new TreeItem<String>("Sin Titulo");
+                    TreeItem<String> item = new TreeItem<String>("Sin Titulo",new ImageView(new Image("Texto.gif")));
                     items.getChildren().add(numeroTab, item);
                 }
                 //Si tab1 ha sido cerrado incrementamos numeroTab al final
@@ -986,12 +986,13 @@ public class JavEditor extends Application {
                                         esparaabrir = true;
                                         pestañanueva.handle(null);
                                         esparaabrir = false;
-                                        seleccionarArea();
+                                        int a = seleccionarArea();
                                         File f = new File(pathProyectos.get(i));
-                                        TreeItem<String> item = new TreeItem<String>(f.getName());
+                                        TreeItem<String> item = new TreeItem<String>(f.getName(),new ImageView( new Image("Texto.gif")));
                                         if (primertab) {
                                             items.getChildren().add(numeroTab - 1, item);
                                         } else {
+                                            a = a+1;
                                             items.getChildren().add(numeroTab, item);
                                         }
                                         actualizarArchivo(f.getAbsolutePath(), f.getName());
@@ -999,8 +1000,17 @@ public class JavEditor extends Application {
                                             FileReader fr = new FileReader(f);
                                             BufferedReader br = new BufferedReader(fr);
                                             String parte = null;
+                                            int contador = 1;
                                             while ((parte = br.readLine()) != null) {
                                                 areaAUtilizar.appendText(parte + "\n");
+                                                if(contador!=1){
+                                                    lineas.get(a).add(contador-1,Integer.toString(contador));
+                                                  if(contador>40){
+                                                    observablelists.get(a).setPrefHeight(17.2*lineas.get(a).size());
+                                                    areaAUtilizar.setMaxHeight(17.2*lineas.get(a).size());
+                                                  }
+                                                }
+                                              contador++;
                                             }
                                         } catch (Exception e) {
                                             JOptionPane.showMessageDialog(null, "Error: No se ha podido abrir el archivo");
@@ -1015,7 +1025,7 @@ public class JavEditor extends Application {
             }
         });
 
-        TreeItem<String> item = new TreeItem<String>(tab1.getText());
+        TreeItem<String> item = new TreeItem<String>(tab1.getText(),new ImageView(new Image("Texto.gif")));
         items.getChildren().add(0, item);
         items.setExpanded(true);
         items.setValue(" Archivos abiertos");
@@ -1198,12 +1208,14 @@ public class JavEditor extends Application {
         String[] listanombres = f.list();
 
         for (int i = 0; i < f.listFiles().length; i++) {
-            TreeItem<String> item2 = new TreeItem<String>(lista[i].getName());
+            TreeItem<String> item2 = new TreeItem<String>(lista[i].getName()); 
             item.getChildren().add(item2);
             if (lista[i].isDirectory()) {
+                item2.setGraphic(new ImageView(new Image("CarpetaSecundaria.gif")));
                 abrirProyecto(lista[i], item2);
             }
             if (lista[i].isFile()) {
+                item2.setGraphic(new ImageView(new Image("Texto.gif")));
                 pathProyectos.add(lista[i].getAbsolutePath());
             }
 
