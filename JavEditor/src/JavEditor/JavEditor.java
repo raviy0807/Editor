@@ -118,8 +118,9 @@ public class JavEditor extends Application {
     public TextArea areaAUtilizar = new TextArea();                       //Area del tab seleccionado
     public ArrayList<Tab> tabs = new ArrayList<Tab>();                     //Tabs creados
     private int numeroTab = 0;                                              //Contador de tabs e indice para seleccionarlos 
-    private boolean primertab = false;                                      //Indica si tab1 sigue abierto(false) o se ha cerrado (true)
-    private boolean esparaabrir = false;                                    //Indica si la nueva pestaña es para abrir(true) o no (false)
+    private boolean _notAvailableTab1 = false;                              //Indica si tab1 sigue abierto(false) o se ha cerrado (true)
+    private boolean _isForOpen = false;                                    //Indica si la nueva pestaña es para abrir(true) o no (false)
+    private boolean _noOpenModificate = false;
     private SeparatorMenuItem[] separate = new SeparatorMenuItem[10];    //Separadores de los MenuItem
     private ArrayList<KeyCode> codigoTeclas = new ArrayList<KeyCode>();   //Codigo de las teclas presionadas
     private TreeItem<String> items = new TreeItem<String>();              //Archivos abiertos en el TreeView
@@ -198,20 +199,20 @@ public class JavEditor extends Application {
                 if (f != null) {
                     try {
 
-                        esparaabrir = true;
+                        _isForOpen = true;
                         pestañanueva.handle(null);
                         int a = seleccionarArea();
-                        esparaabrir = false;
+                        _isForOpen = false;
 
                         //Actualizazo el arraylist pathArchivoActual e incluyo el nombre en el treeview
                         actualizarArchivo(f.getAbsolutePath(), f.getName());
                         TreeItem<String> item = new TreeItem<String>(f.getName(),new ImageView( new Image("Texto.gif")));
-
+                          
                         //Como al abrir una nueva pestaña hemos actualizado el numeroTab
                         //Si no esta tab1 la posicion sera numeroTab-1
                         //Si esta la posicion sera numeroTab
 
-                        if (primertab) {
+                        if (_notAvailableTab1) {
                             items.getChildren().add(numeroTab - 1, item);
                         } else {
                             items.getChildren().add(numeroTab, item);
@@ -223,6 +224,7 @@ public class JavEditor extends Application {
 
                         String parte = null;
                         int i = 1;
+                        _noOpenModificate = true;
                         while ((parte = br.readLine()) != null) {
                                 areaAUtilizar.appendText(parte + "\n");
                                 if(i!=1){
@@ -234,6 +236,7 @@ public class JavEditor extends Application {
                              }
                              i++;
                         }
+                        _noOpenModificate = false;
                     } catch (Exception e) {
                         JOptionPane.showMessageDialog(null, "Error: No se ha podido abrir el archivo");
                     }
@@ -370,34 +373,37 @@ public class JavEditor extends Application {
                 areas.get(numeroTab).setMaxWidth(TextArea.USE_COMPUTED_SIZE);
                 areas.get(numeroTab).setMinWidth(TextArea.USE_COMPUTED_SIZE);
                 areas.get(numeroTab).getStyleClass().add("textArea");
-                
+    
                 areas.get(numeroTab).textProperty().addListener(new ChangeListener<String>(){
-                 @Override
-                 public void changed(final ObservableValue<? extends String> observable, final String oldValue, final String newValue){
-                   int o = seleccionarArea();
-                   boolean control = false;
-                  
-                  if(!modificados.containsKey(areaAUtilizar)){
-                       modificados.put(areaAUtilizar, "True");
-                       control = true;
-                  }
+                     @Override
+                     public void changed(final ObservableValue<? extends String> observable, final String oldValue, final String newValue){
+                        if(_noOpenModificate){
+                            return;
+                        }
+                        int o = seleccionarArea();
+                        boolean control = false;
+                        
+                        if(!modificados.containsKey(areaAUtilizar)){
+                          modificados.put(areaAUtilizar, "True");
+                          control = true;
+                        }
                    
-                   if(primertab){
-                       o = o;
-                   }else{
-                       o = o+1;
-                   }
-                   if(control)
-                   tabPane.getTabs().get(o).setText(tabPane.getTabs().get(o).getText()+"*");
-                  }
-                 });
-                 
+                        if(_notAvailableTab1){
+                          o = o;
+                        }else{
+                          o = o+1;
+                        }
+                        if(control)
+                          tabPane.getTabs().get(o).setText(tabPane.getTabs().get(o).getText()+"*");
+                        }
+                });
+                                 
                 areas.get(numeroTab).setOnKeyPressed(new EventHandler<KeyEvent>() {
                     @Override
                     public void handle(KeyEvent event) {
                         int s = seleccionarArea();
                         if (event.getCode() == KeyCode.ENTER) {
-                            if (primertab) {
+                            if(_notAvailableTab1){
                                 if(lineas.get(s).size()>40){
                                     observablelists.get(s).setPrefHeight(17.2*lineas.get(s).size());
                                     areaAUtilizar.setMaxHeight(17.2*lineas.get(s).size());
@@ -462,24 +468,24 @@ public class JavEditor extends Application {
                 //que se quiere eliminar  porque el elemento que se presiona para ello es distinto del
                 //tab. Y si llamasemos desde esta funcion a archivocerrar no podriamos saberlo
                 //ya que este se borra del tabPane automaticamente.
-                tabNuevo.setOnClosed(new EventHandler<Event>() {
+                tabNuevo.setOnClosed(new EventHandler<Event>(){
                     @Override
-                    public void handle(Event t) {
+                    public void handle(Event t){
                         String s = "";
                         seleccionarArea();
                         if(modificados.containsKey(areaAUtilizar)){
                             JOptionPane.showConfirmDialog(null, "Quieres cerrar el archivo sin guardar?");
                         }
-                        for (int i = 0; i < tabs.size(); i++) {
-                            if (tabs.get(i) != t.getSource()) {
+                        for(int i = 0; i < tabs.size(); i++){
+                            if (tabs.get(i) != t.getSource()){
                                 continue;
-                            } else {
-                                if (primertab) {
+                            }else{
+                                if(_notAvailableTab1){
                                     //s = tabs.get(i).getText();
                                     //actualizarArbol(s);
                                     items.getChildren().remove(i);
                                     pathArchivoActual.remove(i);
-                                } else {
+                                }else{
                                     //s = tabs.get(i).getText();
                                     //actualizarArbol(s);
                                     items.getChildren().remove(i + 1);
@@ -496,7 +502,7 @@ public class JavEditor extends Application {
 
                 //Añadimos el nuevo tab a la lista de tabs y le añadimos las caracteristicas
 
-                tabs.add(numeroTab, tabNuevo);
+                tabs.add(numeroTab,tabNuevo);
                 tabs.get(numeroTab).setClosable(true);
                 tabs.get(numeroTab).setContent(scrll);
                 tabs.get(numeroTab).selectedProperty();
@@ -508,11 +514,11 @@ public class JavEditor extends Application {
                 //En el caso de que el tab por defecto haya sido borrado, se añade al tabPane en la posición
                 //numeroTab si por el contrario sigue abierto, se añade en la posición numeroTab+1
                 //ya que en la primera posición de dicha lista se encontrara el tab por defecto "tab1"
-                if (primertab) {
+                if(_notAvailableTab1){
                     tabPane.getTabs().add(numeroTab, tabs.get(numeroTab));
                     lineas.add(numeroTab,tf);
                     observablelists.add(numeroTab,l);
-                } else {
+                }else{
                     tabPane.getTabs().add(numeroTab + 1, tabs.get(numeroTab));
                     lineas.add(numeroTab+1,tf);
                     observablelists.add(numeroTab+1,l);
@@ -527,12 +533,12 @@ public class JavEditor extends Application {
                 pathArchivoActual.add(numeroTab, " ");
 
                 //Si abrimos una nueva pestaña como nuevo archivo 
-                if (!esparaabrir) {
+                if (!_isForOpen) {
                     TreeItem<String> item = new TreeItem<String>("Sin Titulo",new ImageView(new Image("Texto.gif")));
                     items.getChildren().add(numeroTab, item);
                 }
                 //Si tab1 ha sido cerrado incrementamos numeroTab al final
-                if (primertab) {
+                if(_notAvailableTab1){
                     numeroTab++;
                 }
             }
@@ -559,18 +565,18 @@ public class JavEditor extends Application {
                        comoguardar.handle(null);
                    }
                 }
-                for (int i = 0; i < tabs.size(); i++) {
-                    if (!tabs.get(i).isSelected()) {
+                for(int i=0;i<tabs.size();i++){
+                    if(!tabs.get(i).isSelected()){
                         continue;
-                    } else {
+                    }else{
                         noestab = true;
-                        if (primertab) {
+                        if(_notAvailableTab1){
                             //s = tabs.get(i).getText();
                             //actualizarArbol(s);
                             items.getChildren().remove(i);
                             pathArchivoActual.remove(i);
                             tabPane.getTabs().remove(i);
-                        } else {
+                        }else{
 
                             //s = tabs.get(i).getText();
                             //actualizarArbol(s);
@@ -595,7 +601,7 @@ public class JavEditor extends Application {
                     items.getChildren().remove(0);
                     pathArchivoActual.remove(0);
                     tabPane.getTabs().remove(tab1);
-                    primertab = true;
+                    _notAvailableTab1 = true;
                 }
 
             }
@@ -630,16 +636,16 @@ public class JavEditor extends Application {
                 for (int i = 0; i < tabs.size(); i++) {
                     tabs.remove(0);
                     areas.remove(0);
-                    if (primertab) {
+                    if(_notAvailableTab1){
                         pathArchivoActual.remove(0);
                     } else {
                         pathArchivoActual.remove(0 + 1);
                     }
                 }
-                if (!primertab) {
+                if (!_notAvailableTab1) {
                     pathArchivoActual.remove(0);
                 }
-                primertab = true;
+                _notAvailableTab1 = true;
                 numeroTab = 0;
 
 
@@ -799,7 +805,7 @@ public class JavEditor extends Application {
                 //actualizarArbol(s);
                 items.getChildren().remove(0);
                 pathArchivoActual.remove(0);
-                primertab = true;
+                _notAvailableTab1 = true;
             }
         });
 
@@ -819,7 +825,7 @@ public class JavEditor extends Application {
             public void handle(KeyEvent event) {
                 int s = seleccionarArea();
                 if (event.getCode() == KeyCode.ENTER) {
-                    if (primertab) {
+                    if(_notAvailableTab1){
                         if(lineas.get(s).size()>40){
                            observablelists.get(s).setPrefHeight(17.2*lineas.get(s).size());
                            areaAUtilizar.setMaxHeight(17.2*lineas.get(s).size());
@@ -844,7 +850,7 @@ public class JavEditor extends Application {
                  modificados.put(areaAUtilizar, "True");
                  control = true;
                }
-               if(primertab){
+               if(_notAvailableTab1){
                    o = o;
                }else{
                    o = o+1;
@@ -895,6 +901,7 @@ public class JavEditor extends Application {
         //TreeView
         arbol = new TreeView();
         arbol.setPrefHeight(20);
+        arbol.getStyleClass().add("treeview");
 
         //Se ejecuta cuando se pincha con el ratón en algun elemento del arbol
         arbol.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -983,13 +990,13 @@ public class JavEditor extends Application {
                                     String stra = str.substring(n + 1, s);
                                     //Si coincide con los archivos guardados en pathProyectos lo abrimos.
                                     if (elemento.getValue().compareTo(stra) == 0) {
-                                        esparaabrir = true;
+                                        _isForOpen = true;
                                         pestañanueva.handle(null);
-                                        esparaabrir = false;
+                                        _isForOpen = false;
                                         int a = seleccionarArea();
                                         File f = new File(pathProyectos.get(i));
                                         TreeItem<String> item = new TreeItem<String>(f.getName(),new ImageView( new Image("Texto.gif")));
-                                        if (primertab) {
+                                        if(_notAvailableTab1){
                                             items.getChildren().add(numeroTab - 1, item);
                                         } else {
                                             a = a+1;
@@ -1115,7 +1122,7 @@ public class JavEditor extends Application {
         for (int i = 0; i < tabs.size(); i++) {
             if (tabs.get(i).isSelected()) {
                 noseleccionado = true;
-                if (primertab) {
+                if(_notAvailableTab1){
                     pathArchivoActual.set(i, direccion);
                 } else {
                     pathArchivoActual.set(i + 1, direccion);
@@ -1142,7 +1149,7 @@ public class JavEditor extends Application {
         for (int i = 0; i < tabs.size(); i++) {
             if (tabs.get(i).isSelected()) {
                 hay = true;
-                if (primertab) {
+                if(_notAvailableTab1){
                     if (pathArchivoActual.get(i) != null) {
                         archivoUtilizando = pathArchivoActual.get(i);
                     }
@@ -1171,7 +1178,7 @@ public class JavEditor extends Application {
         boolean bool = false;
         for (int j = 0; j < tabs.size(); j++) {
             if (tabs.get(j).isSelected()) {
-                if (primertab) {
+                if(_notAvailableTab1){
                     items.getChildren().set(j, new TreeItem<String>(nombre));
                 } else {
                     items.getChildren().set(j + 1, new TreeItem<String>(nombre));
