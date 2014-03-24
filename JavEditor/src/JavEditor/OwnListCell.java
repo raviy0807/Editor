@@ -45,12 +45,14 @@ public class OwnListCell extends ListCell<String> {
                 if (textfield != null) {
                     Label l = new Label(textfield.getText());
                     l.setFont(Font.font("Times New Roman",11.35));
+                    l.setStyle("-fx-text-fill:white;");
                     setText(null);
                     setGraphic(l);
                 } else {
                     setText(null);
                     Label l = new Label(item);
                     l.setFont(Font.font("Times New Roman",11.35));
+                    l.setStyle("-fx-text-fill:white;");
                     setText(null);
                     setGraphic(l);
                 }

@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -18,7 +17,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.geometry.Point3D;
 import javafx.event.Event;
 import javafx.event.EventType;
@@ -27,9 +25,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Cell;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
@@ -42,11 +38,9 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -54,8 +48,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -72,74 +64,79 @@ import javax.swing.JOptionPane;
 public class JavEditor extends Application {
 
     private BorderPane root;
-    private ListView<String> elementos;
-    private TreeView arbol;
-    private MenuBar barra;
-    private VBox box;
+    private TreeView<String> tree;
+    private MenuBar bar;
     private TabPane tabPane;
-    private Tab tab1;
+    private Tab defaultTab;
     public TextArea area;
-    private Menu archivo;
-    private Menu edicion;
-    private Menu ayuda;
-    private Menu preferencias;
-    private MenuItem abrir;
-    private MenuItem abrirproject;
-    private MenuItem nuevaPestaña;
-    private MenuItem guardar;
-    private MenuItem guardarcomo;
-    private MenuItem cerrarArchivo;
-    private MenuItem cerrarTodo;
-    private MenuItem cerrar;
-    private MenuItem deshacer;
-    private MenuItem copiar;
-    private MenuItem pegar;
-    private MenuItem cortar;
-    private MenuItem eliminar;
-    private MenuItem seleccionarTodo;
-    private MenuItem deseleccionar;
-    private MenuItem fuente;
-    private MenuItem sobre;
+    private Menu menuFile;
+    private Menu menuEdit;
+    private Menu menuHelp;
+    private Menu menuPreferences;
+    private MenuItem open;
+    private MenuItem openProject;
+    private MenuItem newTab;
+    private MenuItem save;
+    private MenuItem saveAs;
+    private MenuItem closeFile;
+    private MenuItem closeAll;
+    private MenuItem close;
+    private MenuItem undo;
+    private MenuItem copy;
+    private MenuItem paste;
+    private MenuItem cut;
+    private MenuItem delete;
+    private MenuItem selectAll;
+    private MenuItem deselect;
+    private MenuItem font;
+    private MenuItem about;
     
     //Variables para el correcto funcionamiento del programa
-    /*Contiene observablelists que contienen los elementos de las listas de numeros*/
-    private ArrayList<ObservableList<String>> lineas = new ArrayList<ObservableList<String>>();
+    
+    
     /*Contiene las listas para cada tab*/
-    private ArrayList<ListView<String>> observablelists = new ArrayList<ListView<String>>();
+    
     //Selector de archivos
     private OwnFileChooser chooser;                                       
-    private ArrayList<String> pathArchivoActual = new ArrayList<String>();
-    //Almaceno paths de archivos abiertos
-    private ArrayList<String> pathProyectos = new ArrayList<String>();    //Almaceno paths de archivos de proyectos
-    private String archivoUtilizando;                                     //Path del archivo que esta abierto y utilizandose
-    private String archivoGuardado;                                       //Path del archivo guardado
-    private String seleccion;                                             //Texto seleccionado
-    public ArrayList<TextArea> areas = new ArrayList<TextArea>();         //Areas creadas
-    public TextArea areaAUtilizar = new TextArea();                       //Area del tab seleccionado
-    public ArrayList<Tab> tabs = new ArrayList<Tab>();                     //Tabs creados
-    private int numeroTab = 0;                                              //Contador de tabs e indice para seleccionarlos 
-    private boolean _notAvailableTab1 = false;                              //Indica si tab1 sigue abierto(false) o se ha cerrado (true)
-    private boolean _isForOpen = false;                                    //Indica si la nueva pestaña es para abrir(true) o no (false)
-    private boolean _noOpenModificate = false;
-    private SeparatorMenuItem[] separate = new SeparatorMenuItem[10];    //Separadores de los MenuItem
-    private ArrayList<KeyCode> codigoTeclas = new ArrayList<KeyCode>();   //Codigo de las teclas presionadas
-    private TreeItem<String> items = new TreeItem<String>();              //Archivos abiertos en el TreeView
-    private TreeItem<String> projects = new TreeItem<String>();           //Proyectos abiertos en el TreeView
-    private TreeItem<String> rootItem = new TreeItem<String>();           //Raiz del TreeView
-    private Map<TextArea, String> modificados;
+    
+    
+    
+    private String archivoUtilizando; // Opened file path and using file 
+    private String archivoGuardado;  // Saved file path 
+    private String seleccion;       // Selected Text
+    
+    public TextArea areaAUtilizar = new TextArea();    // Selected tab area
+    private int numeroTab = 0;      // Counter 
+    
+    private SeparatorMenuItem[] separate = new SeparatorMenuItem[10];     // Separators on MenuItem
+    private TreeItem<String> items = new TreeItem<String>();              // Opened files in TreeView
+    private TreeItem<String> projects = new TreeItem<String>();           // Opened projects in TreeView
+    private TreeItem<String> rootItem = new TreeItem<String>();           // Root of TreeView
+    private Map<TextArea, String> modificates = new HashMap<TextArea, String>();
+    //ArrayList
+    private ArrayList<String> pathArchivoActual = new ArrayList<String>(); // Opened files paths
+    public  ArrayList<TextArea> areas = new ArrayList<TextArea>();         // Created areas
+    private ArrayList<String> pathProyectos = new ArrayList<String>();     // Projects files paths for open later
+    public  ArrayList<Tab> tabs = new ArrayList<Tab>();                    // Created tabs
+    private ArrayList<KeyCode> keyCodes = new ArrayList<KeyCode>();        // Codes of keys pressed
+    private ArrayList<ObservableList<String>> lineas = new ArrayList<ObservableList<String>>();
+    private ArrayList<ListView<String>> observablelists = new ArrayList<ListView<String>>();  /*Contiene observablelists que contienen los elementos de las listas de numeros*/
+    //Booleans
+    private boolean _notAvailableTab1 = false;       // If defaultTab is open(false) but (true)
+    private boolean _isForOpen = false;              // If newTab is for open file (true) but (false)
+    private boolean _noOpenModificate = false;       // If newTab is for open file, tab must not be modificate (true) int other case (false)
     //EventHandlers
-    private EventHandler<ActionEvent> archivocerrar;                      //Para cerrar un tab seleccionado
-    private EventHandler<ActionEvent> todoscerrar;                        //Para cerrar todos los tabs
-    private EventHandler<ActionEvent> pestañanueva;                       //Para abrir un nueva pestaña(tab+area)
-    private EventHandler<ActionEvent> comoguardar;                        //Para abrir el selector de ficheros y guardar
-    private EventHandler<ActionEvent> abrirarchivo;                       //Para abrir el selector de ficheros y abrir
-    private EventHandler<ActionEvent> guardararchivo;                     //Guardar un archivo que ya existe                                                 
-    private EventHandler<ActionEvent> projectabrir;
+    private EventHandler<ActionEvent> _fileClose;     // Close selected tab
+    private EventHandler<ActionEvent> _allClose;      // Close all tabs
+    private EventHandler<ActionEvent> _tabNew;        // Open new tab with an area,scrollbar...
+    private EventHandler<ActionEvent> _asSave;        // Open filechooser and save file
+    private EventHandler<ActionEvent> _openFile;      // Open filechooser and open file
+    private EventHandler<ActionEvent> _saveFile;      // Save an exists file                                                 
+    private EventHandler<ActionEvent> _projectOpen;   // Open filechooser and open a directory
 
     @Override
     public void start(Stage primaryStage) {
 
-        modificados = new HashMap<TextArea, String>();
         //Inicializo la posición cero de las direcciones de archivos a vacio(explicado mas abajo). Esta
         //corresponde al tab que se crea por defecto(tab1)
         pathArchivoActual.add(0, " ");
@@ -165,31 +162,31 @@ public class JavEditor extends Application {
         root.setRotationAxis(punto);
 
         //Barra principal con las pestañas de los menús
-        barra = new MenuBar();
-        barra.autosize();
-        barra.setMaxHeight(MenuBar.USE_COMPUTED_SIZE);
-        barra.setMaxWidth(MenuBar.USE_COMPUTED_SIZE);
-        barra.setMinHeight(24);
-        barra.setMinWidth(MenuBar.USE_COMPUTED_SIZE);
-        barra.setPrefHeight(22);
-        barra.setPrefWidth(1024);
-        barra.setScaleX(1);
-        barra.setScaleY(1);
-        barra.setScaleZ(1);
-        barra.setRotationAxis(punto);
+        bar = new MenuBar();
+        bar.autosize();
+        bar.setMaxHeight(MenuBar.USE_COMPUTED_SIZE);
+        bar.setMaxWidth(MenuBar.USE_COMPUTED_SIZE);
+        bar.setMinHeight(24);
+        bar.setMinWidth(MenuBar.USE_COMPUTED_SIZE);
+        bar.setPrefHeight(22);
+        bar.setPrefWidth(1024);
+        bar.setScaleX(1);
+        bar.setScaleY(1);
+        bar.setScaleZ(1);
+        bar.setRotationAxis(punto);
 
         //Menús
-        archivo = new Menu("Archivo");
+        menuFile = new Menu("Archivo");
 
         //MenuItems del menú "Archivo"
-        abrir = new MenuItem("Abrir                                            Ctrl+O");
+        open = new MenuItem("Abrir                                            Ctrl+O");
 
         /**
          * Abre un archivo en un nuevo tab que crea y escribe el texto de dicho
          * archivo en el area correspondiente al tab seleccionado, que es el tab
          * creado. ATAJO : CTRL+0
          */
-        abrir.setOnAction(abrirarchivo = new EventHandler<ActionEvent>() {
+        open.setOnAction(_openFile = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
 
@@ -200,7 +197,7 @@ public class JavEditor extends Application {
                     try {
 
                         _isForOpen = true;
-                        pestañanueva.handle(null);
+                        _tabNew.handle(null);
                         int a = seleccionarArea();
                         _isForOpen = false;
 
@@ -229,12 +226,12 @@ public class JavEditor extends Application {
                                 areaAUtilizar.appendText(parte + "\n");
                                 if(i!=1){
                                   lineas.get(a).add(i-1,Integer.toString(i));
-                                if(i>40){
-                                    observablelists.get(a).setPrefHeight(17.2*lineas.get(a).size());
-                                    areaAUtilizar.setMaxHeight(17.2*lineas.get(a).size());
-                                }
                              }
                              i++;
+                        }
+                        if(i>39){
+                          observablelists.get(a).setPrefHeight(17.2*lineas.get(a).size());
+                          areaAUtilizar.setPrefHeight(17.2*lineas.get(a).size());
                         }
                         _noOpenModificate = false;
                     } catch (Exception e) {
@@ -247,8 +244,8 @@ public class JavEditor extends Application {
          * Abre un proyecto seleccionado,con todas sus subcarpetas
          * y archivos llamando a la función abrirProyecto(explicada mas abajo)
          */
-        abrirproject = new MenuItem("Abrir proyecto");
-        abrirproject.setOnAction(projectabrir = new EventHandler<ActionEvent>() {
+        openProject = new MenuItem("Abrir proyecto");
+        openProject.setOnAction(_projectOpen = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 chooser = new OwnFileChooser();
@@ -271,13 +268,13 @@ public class JavEditor extends Application {
          * caso de que no existiese se llamará a la función guardarComo
          * guardandose en la dirección que se le indique. ATAJO : CTRL + S
          */
-        guardar = new MenuItem("Guardar                                       Ctrl+S");
-        guardar.setOnAction(guardararchivo = new EventHandler<ActionEvent>() {
+        save = new MenuItem("Guardar                                       Ctrl+S");
+        save.setOnAction(_saveFile = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 busquedaArchivo();
                 if (archivoUtilizando == " ") {
-                    comoguardar.handle(null);
+                    _asSave.handle(null);
                 } else {
                     File f = new File(archivoUtilizando);
                     try {
@@ -303,9 +300,9 @@ public class JavEditor extends Application {
          * actualizara el nombre del tab y el nombre que aparezca en el
          * TreeView.
          */
-        guardarcomo = new MenuItem("Guardar Como...");
+        saveAs = new MenuItem("Guardar Como...");
         //guardarcomo.setStyle("-fx-font-size:60pt;");
-        guardarcomo.setOnAction(comoguardar = new EventHandler<ActionEvent>() {
+        saveAs.setOnAction(_asSave = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 chooser = new OwnFileChooser();
@@ -345,8 +342,8 @@ public class JavEditor extends Application {
         /**
          * Cierra el programa JavEditor
          */
-        cerrar = new MenuItem("Cerrar");
-        cerrar.setOnAction(new EventHandler<ActionEvent>() {
+        close = new MenuItem("Cerrar");
+        close.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 System.exit(0);
@@ -356,8 +353,8 @@ public class JavEditor extends Application {
         /**
          * Abre una nueva pestaña para crear un nuevo archivo. ATAJO : CTRL+N
          */
-        nuevaPestaña = new MenuItem("Nuevo Archivo                            Ctrl+N");
-        nuevaPestaña.setOnAction(pestañanueva = new EventHandler<ActionEvent>() {
+        newTab = new MenuItem("Nuevo Archivo                            Ctrl+N");
+        newTab.setOnAction(_tabNew = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
 
@@ -366,14 +363,14 @@ public class JavEditor extends Application {
                 TextArea areaNueva = new TextArea();
                 areaNueva.setWrapText(true);
                 areas.add(numeroTab, areaNueva);
-                areas.get(numeroTab).setPrefHeight(688);
+                areas.get(numeroTab).setPrefHeight(690);
                 areas.get(numeroTab).setPrefWidth(1024);
                 areas.get(numeroTab).setMinHeight(TextArea.USE_COMPUTED_SIZE);
                 areas.get(numeroTab).setMaxHeight(TextArea.USE_COMPUTED_SIZE);
                 areas.get(numeroTab).setMaxWidth(TextArea.USE_COMPUTED_SIZE);
                 areas.get(numeroTab).setMinWidth(TextArea.USE_COMPUTED_SIZE);
                 areas.get(numeroTab).getStyleClass().add("textArea");
-    
+
                 areas.get(numeroTab).textProperty().addListener(new ChangeListener<String>(){
                      @Override
                      public void changed(final ObservableValue<? extends String> observable, final String oldValue, final String newValue){
@@ -383,8 +380,8 @@ public class JavEditor extends Application {
                         int o = seleccionarArea();
                         boolean control = false;
                         
-                        if(!modificados.containsKey(areaAUtilizar)){
-                          modificados.put(areaAUtilizar, "True");
+                        if(!modificates.containsKey(areaAUtilizar)){
+                          modificates.put(areaAUtilizar, "True");
                           control = true;
                         }
                    
@@ -404,27 +401,27 @@ public class JavEditor extends Application {
                         int s = seleccionarArea();
                         if (event.getCode() == KeyCode.ENTER) {
                             if(_notAvailableTab1){
-                                if(lineas.get(s).size()>40){
-                                    observablelists.get(s).setPrefHeight(17.2*lineas.get(s).size());
-                                    areaAUtilizar.setMaxHeight(17.2*lineas.get(s).size());
+                                if(lineas.get(s).size()>20){
+                                    observablelists.get(s).setPrefHeight(17.2*lineas.get(s).size()+400);
+                                    areaAUtilizar.setPrefHeight(17.2*lineas.get(s).size()+400);
                                 }
                                 lineas.get(s).add(lineas.get(s).size(), Integer.toString(lineas.get(s).size()+1));
                             } else {
-                                if(lineas.get(s+1).size()>40){
-                                    observablelists.get(s+1).setPrefHeight(17.2*lineas.get(s+1).size());
-                                    areaAUtilizar.setMaxHeight(17.2*lineas.get(s+1).size());
+                                if(lineas.get(s+1).size()>20){
+                                    observablelists.get(s+1).setPrefHeight(17.2*lineas.get(s+1).size()+400);
+                                    areaAUtilizar.setPrefHeight(17.2*lineas.get(s+1).size()+400);
                                 }
                                 lineas.get(s + 1).add(lineas.get(s + 1).size(), Integer.toString(lineas.get(s + 1).size()+1));
                             }
                         }
                     }
                 });
-                VBox vox = new VBox();
+ 
                 /*Para poder mover la lista de numeros y el area a la vez*/
                 ScrollPane scrll = new ScrollPane();
                 ScrollBar bar = new ScrollBar();
                 bar.setOrientation(Orientation.VERTICAL);
-                bar.setPrefHeight(1024);
+                bar.setPrefHeight(680);
                 /*Incluyo en el borderpane a la izquierda la lista de numeros y en el centro nada*/
                 BorderPane bor = new BorderPane();
                 /*VBox para poder darle un padding al lista de numeros*/
@@ -448,16 +445,16 @@ public class JavEditor extends Application {
                 tf.add(0,"1");
                 v.getChildren().add(l);
                 v.setPadding(new Insets(3,-1,0,0));
+                v.getStyleClass().add("vox");
                 bor.setLeft(v);
                 bor.setCenter(areaNueva);
                 bor.setPadding(new Insets(-1,-1,-1,-1));
                 scrll.setContent(bar);
                 scrll.setContent(bor);
-                vox.getChildren().add(scrll);
                 //Crea el nuevo tab
                 Tab tabNuevo = new Tab("Sin Titulo");
-
-                //Si se presiona el simbolo de cerrar del tab elimina el tab del tabpane por defecto
+                
+                 //Si se presiona el simbolo de cerrar del tab elimina el tab del tabpane por defecto
                 //, se busca el tab donde ha sido presionado el boton
                 //y se elimina el hueco creado para el tab en el array de direcciones de archivo
                 //y se elimina del array de tabs, y el area correspondiente al tab tambien.
@@ -473,7 +470,7 @@ public class JavEditor extends Application {
                     public void handle(Event t){
                         String s = "";
                         seleccionarArea();
-                        if(modificados.containsKey(areaAUtilizar)){
+                        if(modificates.containsKey(areaAUtilizar)){
                             JOptionPane.showConfirmDialog(null, "Quieres cerrar el archivo sin guardar?");
                         }
                         for(int i = 0; i < tabs.size(); i++){
@@ -499,7 +496,6 @@ public class JavEditor extends Application {
                         }
                     }
                 });
-
                 //Añadimos el nuevo tab a la lista de tabs y le añadimos las caracteristicas
 
                 tabs.add(numeroTab,tabNuevo);
@@ -550,19 +546,19 @@ public class JavEditor extends Application {
          * la posición creada para la dirección del archivo, el area y el tab de las listas tabs y areas, 
          * a parte de eliminarlo del tabPane ya que al ser un atajo no se realiza por defecto. ATAJO : CTRL+A
          */
-        cerrarArchivo = new MenuItem("Cerrar Archivo                             Ctrl+T");
-        cerrarArchivo.setOnAction(archivocerrar = new EventHandler<ActionEvent>() {
+        closeFile = new MenuItem("Cerrar Archivo                             Ctrl+T");
+        closeFile.setOnAction(_fileClose = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 String s;
                 boolean noestab = false;
                 seleccionarArea();
-                if(modificados.containsKey(areaAUtilizar)){
+                if(modificates.containsKey(areaAUtilizar)){
                    int n = JOptionPane.showConfirmDialog(null, "Do you want save the file?");
                    if(n==JOptionPane.CANCEL_OPTION){
                        return;
                    }else if(n==JOptionPane.YES_OPTION){
-                       comoguardar.handle(null);
+                       _asSave.handle(null);
                    }
                 }
                 for(int i=0;i<tabs.size();i++){
@@ -600,7 +596,7 @@ public class JavEditor extends Application {
                     //actualizarArbol(s);
                     items.getChildren().remove(0);
                     pathArchivoActual.remove(0);
-                    tabPane.getTabs().remove(tab1);
+                    tabPane.getTabs().remove(defaultTab);
                     _notAvailableTab1 = true;
                 }
 
@@ -612,19 +608,19 @@ public class JavEditor extends Application {
          * de la lista uno por uno, ademas, se borran las correspondientes direcciones de archivos guardadas y
          * las areas creadas para los tabs.Además se van borrando los nombres del TreeView
          */
-        cerrarTodo = new MenuItem("Cerrar Todo                                 Ctrl+Q");
-        cerrarTodo.setOnAction(todoscerrar = new EventHandler<ActionEvent>() {
+        closeAll = new MenuItem("Cerrar Todo                                 Ctrl+Q");
+        closeAll.setOnAction(_allClose = new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 int longitudTabPane = tabPane.getTabs().size();
                 for (int i = 0; i < longitudTabPane; i++) {
                     seleccionarArea();
-                    if(modificados.containsKey(areaAUtilizar)){
+                    if(modificates.containsKey(areaAUtilizar)){
                       int n = JOptionPane.showConfirmDialog(null, "Do you want save the file?");
                       if(n==JOptionPane.CANCEL_OPTION){
                          return;
                       }else if(n==JOptionPane.YES_OPTION){
-                         comoguardar.handle(null);
+                         _asSave.handle(null);
                       }
                     }
                     if (items.getChildren().size() > 0) {
@@ -651,16 +647,16 @@ public class JavEditor extends Application {
 
             }
         });
-        archivo.getItems().addAll(nuevaPestaña, separate[0], abrir, abrirproject, guardar, guardarcomo, separate[1], cerrarArchivo, cerrarTodo, separate[2], cerrar);
-        edicion = new Menu("Edición");
+        menuFile.getItems().addAll(newTab, separate[0], open, openProject, save, saveAs, separate[1], closeFile, closeAll, separate[2], close);
+        menuEdit = new Menu("Edición");
 
         //Submenús de "Edición"
-        deshacer = new MenuItem("Deshacer                                          Ctrl+Z");
+        undo = new MenuItem("Deshacer                                          Ctrl+Z");
 
         /*
          *  Deshace la acción previa hecha
          */
-        deshacer.setOnAction(new EventHandler<ActionEvent>() {
+        undo.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 seleccion = area.getSelectedText();
@@ -671,12 +667,12 @@ public class JavEditor extends Application {
             }
         });
 
-        seleccionarTodo = new MenuItem("Seleccionar Todo                              Ctrl+A");
+        selectAll = new MenuItem("Seleccionar Todo                              Ctrl+A");
 
         /*
          *  Selecciona todo el texto del area del tab en el que se encuentra en el momento
          */
-        seleccionarTodo.setOnAction(new EventHandler<ActionEvent>() {
+        selectAll.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 seleccionarArea();
@@ -684,11 +680,11 @@ public class JavEditor extends Application {
             }
         });
 
-        deseleccionar = new MenuItem("Deseleccionar");
+        deselect = new MenuItem("Deseleccionar");
         /*
          *  Deselecciona lo seleccionado previamente
          */
-        deseleccionar.setOnAction(new EventHandler<ActionEvent>() {
+        deselect.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 seleccionarArea();
@@ -696,12 +692,12 @@ public class JavEditor extends Application {
             }
         });
 
-        cortar = new MenuItem("Cortar                                               Ctrl+X");
+        cut = new MenuItem("Cortar                                               Ctrl+X");
         /*
          *  Corta lo seleccionado, elimina de la pantalla lo seleccionado, almacenandolo en la variable seleccion
          * para su posible posterior pegado
          */
-        cortar.setOnAction(new EventHandler<ActionEvent>() {
+        cut.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 seleccionarArea();
@@ -710,12 +706,12 @@ public class JavEditor extends Application {
             }
         });
 
-        copiar = new MenuItem("Copiar                                              Ctrl+C");
+        copy = new MenuItem("Copiar                                              Ctrl+C");
         /**
          * Copia lo seleccionado, almacena dicha selección en la variable
          * seleccion para su posible posterior pegado
          */
-        copiar.setOnAction(new EventHandler<ActionEvent>() {
+        copy.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 seleccionarArea();
@@ -723,11 +719,11 @@ public class JavEditor extends Application {
             }
         });
 
-        pegar = new MenuItem("Pegar                                                Ctrl+V");
+        paste = new MenuItem("Pegar                                                Ctrl+V");
         /*
          * Añade al texto del area del tab seleccionado lo que se encuentra en la variable selección.
          */
-        pegar.setOnAction(new EventHandler<ActionEvent>() {
+        paste.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 seleccionarArea();
@@ -736,11 +732,11 @@ public class JavEditor extends Application {
             }
         });
 
-        eliminar = new MenuItem("Eliminar");
+        delete = new MenuItem("Eliminar");
         /*
          *  Elimina lo seleccionado, a diferencia de cortar, este no guarda el texto en ninguna variable.
          */
-        eliminar.setOnAction(new EventHandler<ActionEvent>() {
+        delete.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 seleccionarArea();
@@ -748,16 +744,16 @@ public class JavEditor extends Application {
             }
         });
 
-        edicion.getItems().addAll(deshacer, separate[3], copiar, cortar, pegar, eliminar, separate[4], seleccionarTodo);
-        ayuda = new Menu("Ayuda");
+        menuEdit.getItems().addAll(undo, separate[3], copy, cut, paste, delete, separate[4], selectAll,deselect);
+        menuHelp = new Menu("Ayuda");
 
         //Submenús de "Ayuda"
-        sobre = new MenuItem("Sobre JavEditor");
+        about = new MenuItem("Sobre JavEditor");
 
         /*
          * Abre una nueva ventana donde se da información de JavEditor
          */
-        sobre.setOnAction(new EventHandler<ActionEvent>() {
+        about.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
                 Stage stage = new Stage();
@@ -766,16 +762,17 @@ public class JavEditor extends Application {
             }
         });
 
-        ayuda.getItems().addAll(sobre);
-        preferencias = new Menu("Preferencias");
+        menuHelp.getItems().addAll(about);
+        menuPreferences = new Menu("Preferencias");
 
         //SubMenús de "Preferencias"
-        fuente = new MenuItem("Fuente");
-        preferencias.getItems().addAll(fuente);
-        barra.getMenus().addAll(archivo, edicion, preferencias, ayuda);
+        font = new MenuItem("Fuente");
+        menuPreferences.getItems().addAll(font);
+        bar.getMenus().addAll(menuFile, menuEdit, menuPreferences, menuHelp);
 
         //Panel central que contiene tanto las distintas pestañas como sus areas.
         tabPane = new TabPane();
+        tabPane.getStyleClass().add("tabpane");
         tabPane.autosize();
         tabPane.setLayoutX(0);
         tabPane.setLayoutY(24);
@@ -792,13 +789,13 @@ public class JavEditor extends Application {
         tabPane.setRotationAxis(punto);
 
         //Tab que viene predeterminado
-        tab1 = new Tab("Sin Titulo");
+        defaultTab = new Tab("Sin Titulo");
         /**
          * Cuando se cierra este tab se elimina la dirección del archivo que
          * tenga abierto y se pone a true la variable primertab para condiciones
          * necesarias de otras funciones
          */
-        tab1.setOnClosed(new EventHandler<Event>() {
+        defaultTab.setOnClosed(new EventHandler<Event>() {
             @Override
             public void handle(Event t) {
                 //String s = tab1.getText();
@@ -846,8 +843,8 @@ public class JavEditor extends Application {
            public void changed(final ObservableValue<? extends String> observable, final String oldValue, final String newValue){
               int o = seleccionarArea();
               boolean control = false; 
-              if(!modificados.containsKey(areaAUtilizar)){
-                 modificados.put(areaAUtilizar, "True");
+              if(!modificates.containsKey(areaAUtilizar)){
+                 modificates.put(areaAUtilizar, "True");
                  control = true;
                }
                if(_notAvailableTab1){
@@ -878,6 +875,7 @@ public class JavEditor extends Application {
                     
                     OwnListCell c = new OwnListCell();
                     c.setPrefSize(20,17.2);
+                    c.getStyleClass().add("list-cell");
                     return c;
                 }
             }
@@ -889,29 +887,31 @@ public class JavEditor extends Application {
         observablelists.add(0,l);
         b.getChildren().add(l);
         b.setPadding(new Insets(3,-1,0,0));
+        b.getStyleClass().add("vox");
         bor.setLeft(b);
         bor.setCenter(area);
         bor.setPadding(new Insets(-1,-1,-1,-1));
         pane.setContent(scroll);
         pane.setContent(bor);
-        tab1.setContent(pane);
-        tabPane.getTabs().add(tab1);
+        defaultTab.setContent(pane);
+        tabPane.getTabs().add(defaultTab);
         tabPane.setPrefWidth(1024);
 
         //TreeView
-        arbol = new TreeView();
-        arbol.setPrefHeight(20);
-        arbol.getStyleClass().add("treeview");
-
+        tree = new TreeView<String>();
+        tree.setPrefHeight(20);
+        tree.getStyleClass().add("tree-view");
+        
+        
         //Se ejecuta cuando se pincha con el ratón en algun elemento del arbol
-        arbol.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        tree.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 //Si se pincha 1 vez, selecciona el archivo que se ha pinchado, en el caso de que
                 //ya este abierto, si no esta abierto,no hace nada
                 if (event.getClickCount() == 1) {
-                    if (!arbol.getSelectionModel().isEmpty()) {
-                        TreeItem<String> elemento = (TreeItem<String>) arbol.getSelectionModel().getSelectedItem();
+                    if (!tree.getSelectionModel().isEmpty()) {
+                        TreeItem<String> elemento = (TreeItem<String>) tree.getSelectionModel().getSelectedItem();
                         if (event.getButton() == MouseButton.PRIMARY) {
                             if (elemento.isLeaf()) {
                                 for (int i = 0; i < items.getChildren().size(); i++) {
@@ -926,21 +926,21 @@ public class JavEditor extends Application {
                             if (elemento.equals(projects)) {
                                 ContextMenu cnt = new ContextMenu();
                                 MenuItem nuevo = new MenuItem("Nuevo Archivo");
-                                nuevo.setOnAction(pestañanueva);
+                                nuevo.setOnAction(_tabNew);
                                 MenuItem proyecto = new MenuItem("Abrir Proyecto");
-                                proyecto.setOnAction(projectabrir);
+                                proyecto.setOnAction(_projectOpen);
                                 cnt.getItems().addAll(nuevo, proyecto);
-                                cnt.show(arbol, event.getScreenX(), event.getScreenY());
+                                cnt.show(tree, event.getScreenX(), event.getScreenY());
                             } else if (elemento.equals(items)) {
                                 ContextMenu cnt = new ContextMenu();
                                 MenuItem nuevo = new MenuItem("Nuevo Archivo");
-                                nuevo.setOnAction(pestañanueva);
+                                nuevo.setOnAction(_tabNew);
                                 MenuItem cerrar = new MenuItem("Cerrar Archivo");
-                                cerrar.setOnAction(archivocerrar);
+                                cerrar.setOnAction(_fileClose);
                                 MenuItem cerrartodo = new MenuItem("Cerrar todo");
-                                cerrartodo.setOnAction(todoscerrar);
+                                cerrartodo.setOnAction(_allClose);
                                 cnt.getItems().addAll(nuevo, cerrar, cerrartodo);
-                                cnt.show(arbol, event.getScreenX(), event.getScreenY());
+                                cnt.show(tree, event.getScreenX(), event.getScreenY());
                             } else {
                                 boolean noesdocumento = false;
                                 for (int i = 0; i < pathProyectos.size(); i++) {
@@ -951,7 +951,7 @@ public class JavEditor extends Application {
                                         MenuItem abrir = new MenuItem("Abrir");
                                         MenuItem renombrar = new MenuItem("Renombrar");
                                         cnt.getItems().addAll(abrir, renombrar);
-                                        cnt.show(arbol, event.getScreenX(), event.getScreenY());
+                                        cnt.show(tree, event.getScreenX(), event.getScreenY());
                                         break;
                                     }
                                 }
@@ -961,7 +961,7 @@ public class JavEditor extends Application {
                                     MenuItem cerrarproyecto = new MenuItem("Cerrar");
                                     cnt.getItems().addAll(nuevo, cerrarproyecto);
 
-                                    cnt.show(arbol, event.getScreenX(), event.getScreenY());
+                                    cnt.show(tree, event.getScreenX(), event.getScreenY());
                                 }
                             }
                         }
@@ -971,8 +971,8 @@ public class JavEditor extends Application {
                     //En el caso de que no este abierto, lo abre en una nueva pestaña
                     //para esto sirve el array pathProyectos
                 } else if (event.getClickCount() == 2) {
-                    if (!arbol.getSelectionModel().isEmpty()) {
-                        TreeItem<String> elemento = (TreeItem<String>) arbol.getSelectionModel().getSelectedItem();
+                    if (!tree.getSelectionModel().isEmpty()) {
+                        TreeItem<String> elemento = (TreeItem<String>) tree.getSelectionModel().getSelectedItem();
                         if (elemento.isLeaf()) {
                             boolean nohay = false;
                             for (int i = 0; i < items.getChildren().size(); i++) {
@@ -991,7 +991,7 @@ public class JavEditor extends Application {
                                     //Si coincide con los archivos guardados en pathProyectos lo abrimos.
                                     if (elemento.getValue().compareTo(stra) == 0) {
                                         _isForOpen = true;
-                                        pestañanueva.handle(null);
+                                        _tabNew.handle(null);
                                         _isForOpen = false;
                                         int a = seleccionarArea();
                                         File f = new File(pathProyectos.get(i));
@@ -1008,6 +1008,7 @@ public class JavEditor extends Application {
                                             BufferedReader br = new BufferedReader(fr);
                                             String parte = null;
                                             int contador = 1;
+                                            _noOpenModificate = true;
                                             while ((parte = br.readLine()) != null) {
                                                 areaAUtilizar.appendText(parte + "\n");
                                                 if(contador!=1){
@@ -1019,6 +1020,7 @@ public class JavEditor extends Application {
                                                 }
                                               contador++;
                                             }
+                                            _noOpenModificate = false;
                                         } catch (Exception e) {
                                             JOptionPane.showMessageDialog(null, "Error: No se ha podido abrir el archivo");
                                         }
@@ -1031,24 +1033,37 @@ public class JavEditor extends Application {
                 }
             }
         });
-
-        TreeItem<String> item = new TreeItem<String>(tab1.getText(),new ImageView(new Image("Texto.gif")));
+        tree.setCellFactory( new Callback<TreeView<String>,
+                TreeCell<String>>(){
+                    @Override
+                    public TreeCell<String> call(TreeView<String> view){
+                        OwnTreeCell cell = new OwnTreeCell();
+                        cell.getStyleClass().add("own-tree-cell");
+                        return cell;
+                    }
+                }
+         );
+        
+        TreeItem<String> item = new TreeItem<String>(defaultTab.getText(),new ImageView(new Image("Texto.gif")));
         items.getChildren().add(0, item);
+
         items.setExpanded(true);
         items.setValue(" Archivos abiertos");
         projects.setExpanded(true);
         projects.setValue(" Proyectos");
-        rootItem.getChildren().addAll(items, projects);
+        rootItem.getChildren().add(items);
+        rootItem.getChildren().add(projects);
         rootItem.setExpanded(true);
-        arbol.setRoot(rootItem);
+        tree.setRoot(rootItem);
+        
 
         //Si una tecla es pulsada se almacena el codigo en la lista codigoTeclas y si hay mas de 1
         //se realiza la comprobacion de las teclas pulsadas.
         root.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
-                codigoTeclas.add(event.getCode());
-                if (codigoTeclas.size() > 1) {
+                keyCodes.add(event.getCode());
+                if (keyCodes.size() > 1) {
                     comprobarTeclas();
                 }
             }
@@ -1057,13 +1072,13 @@ public class JavEditor extends Application {
         root.setOnKeyReleased(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
-                codigoTeclas.remove(event.getCode());
+                keyCodes.remove(event.getCode());
             }
         });
 
         //El panel de tabs y la barra de herramientas se añaden al panel root
-        root.setLeft(arbol);
-        root.setTop(barra);
+        root.setLeft(tree);
+        root.setTop(bar);
         root.setCenter(tabPane);
         
         Scene scene = new Scene(root);
@@ -1132,7 +1147,7 @@ public class JavEditor extends Application {
         }
         if (!noseleccionado) {
             pathArchivoActual.set(0, direccion);
-            tab1.setText(archivo);
+            defaultTab.setText(archivo);
 
         }
     }
@@ -1241,39 +1256,39 @@ public class JavEditor extends Application {
      * correspondiente, si no, elimina las teclas guardadas de la lista.
      */
     private void comprobarTeclas() {
-        if (codigoTeclas.get(0).equals(KeyCode.CONTROL)) {
-            if (codigoTeclas.get(1) == KeyCode.N) {
-                pestañanueva.handle(null);
-            } else if (codigoTeclas.get(1) == KeyCode.Z) {
+        if (keyCodes.get(0).equals(KeyCode.CONTROL)) {
+            if (keyCodes.get(1) == KeyCode.N) {
+                _tabNew.handle(null);
+            } else if (keyCodes.get(1) == KeyCode.Z) {
                 seleccion = area.getSelectedText();
                 if (!seleccion.isEmpty()) {
                     seleccionarArea();
                     areaAUtilizar.deselect();
                 }
-            } else if (codigoTeclas.get(1) == KeyCode.X) {
+            } else if (keyCodes.get(1) == KeyCode.X) {
                 seleccionarArea();
                 seleccion = areaAUtilizar.getSelectedText();
                 areaAUtilizar.cut();
-            } else if (codigoTeclas.get(1) == KeyCode.C) {
+            } else if (keyCodes.get(1) == KeyCode.C) {
                 seleccionarArea();
                 seleccion = areaAUtilizar.getSelectedText();
-            } else if (codigoTeclas.get(1) == KeyCode.Q) {
-                todoscerrar.handle(null);
-            } else if (codigoTeclas.get(1) == KeyCode.V) {
+            } else if (keyCodes.get(1) == KeyCode.Q) {
+                _allClose.handle(null);
+            } else if (keyCodes.get(1) == KeyCode.V) {
                 seleccionarArea();
                 areaAUtilizar.appendText(seleccion);
-            } else if (codigoTeclas.get(1) == KeyCode.T) {
-                archivocerrar.handle(null);
-            } else if (codigoTeclas.get(1) == KeyCode.O) {
-                abrirarchivo.handle(null);
-            } else if (codigoTeclas.get(1) == KeyCode.S) {
-                guardararchivo.handle(null);
-            } else if (codigoTeclas.get(1) == KeyCode.P) {
-                projectabrir.handle(null);
+            } else if (keyCodes.get(1) == KeyCode.T) {
+                _fileClose.handle(null);
+            } else if (keyCodes.get(1) == KeyCode.O) {
+                _openFile.handle(null);
+            } else if (keyCodes.get(1) == KeyCode.S) {
+                _saveFile.handle(null);
+            } else if (keyCodes.get(1) == KeyCode.P) {
+                _projectOpen.handle(null);
             }
         }
-        codigoTeclas.remove(0);
-        codigoTeclas.remove(0);
+        keyCodes.remove(0);
+        keyCodes.remove(0);
 
     }
 
