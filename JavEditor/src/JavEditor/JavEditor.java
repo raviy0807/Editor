@@ -106,7 +106,7 @@ public class JavEditor extends Application {
     private String seleccion;       // Selected Text
     
     public TextArea areaAUtilizar = new TextArea();    // Selected tab area
-    private int numeroTab = 0;      // Counter 
+    private int numberTabs = 0;      // Counter 
     
     private SeparatorMenuItem[] separate = new SeparatorMenuItem[10];     // Separators on MenuItem
     private TreeItem<String> items = new TreeItem<String>();              // Opened files in TreeView
