@@ -210,9 +210,9 @@ public class JavEditor extends Application {
                         //Si esta la posicion sera numeroTab
 
                         if (_notAvailableTab1) {
-                            items.getChildren().add(numeroTab - 1, item);
+                            items.getChildren().add(numberTabs - 1, item);
                         } else {
-                            items.getChildren().add(numeroTab, item);
+                            items.getChildren().add(numberTabs, item);
                             a = a + 1;
                         }
                         System.out.println(a);
@@ -362,16 +362,16 @@ public class JavEditor extends Application {
                 //Crea un nuevo area de texto para incluirlo en la nueva pestaña
                 TextArea areaNueva = new TextArea();
                 areaNueva.setWrapText(true);
-                areas.add(numeroTab, areaNueva);
-                areas.get(numeroTab).setPrefHeight(690);
-                areas.get(numeroTab).setPrefWidth(1024);
-                areas.get(numeroTab).setMinHeight(TextArea.USE_COMPUTED_SIZE);
-                areas.get(numeroTab).setMaxHeight(TextArea.USE_COMPUTED_SIZE);
-                areas.get(numeroTab).setMaxWidth(TextArea.USE_COMPUTED_SIZE);
-                areas.get(numeroTab).setMinWidth(TextArea.USE_COMPUTED_SIZE);
-                areas.get(numeroTab).getStyleClass().add("textArea");
+                areas.add(numberTabs, areaNueva);
+                areas.get(numberTabs).setPrefHeight(690);
+                areas.get(numberTabs).setPrefWidth(1024);
+                areas.get(numberTabs).setMinHeight(TextArea.USE_COMPUTED_SIZE);
+                areas.get(numberTabs).setMaxHeight(TextArea.USE_COMPUTED_SIZE);
+                areas.get(numberTabs).setMaxWidth(TextArea.USE_COMPUTED_SIZE);
+                areas.get(numberTabs).setMinWidth(TextArea.USE_COMPUTED_SIZE);
+                areas.get(numberTabs).getStyleClass().add("textArea");
 
-                areas.get(numeroTab).textProperty().addListener(new ChangeListener<String>(){
+                areas.get(numberTabs).textProperty().addListener(new ChangeListener<String>(){
                      @Override
                      public void changed(final ObservableValue<? extends String> observable, final String oldValue, final String newValue){
                         if(_noOpenModificate){
@@ -395,7 +395,7 @@ public class JavEditor extends Application {
                         }
                 });
                                  
-                areas.get(numeroTab).setOnKeyPressed(new EventHandler<KeyEvent>() {
+                areas.get(numberTabs).setOnKeyPressed(new EventHandler<KeyEvent>() {
                     @Override
                     public void handle(KeyEvent event) {
                         int s = seleccionarArea();
@@ -490,7 +490,7 @@ public class JavEditor extends Application {
                                 }
                                 areas.remove(i);
                                 tabs.remove(i);
-                                numeroTab--;
+                                numberTabs--;
                                 break;
                             }
                         }
@@ -498,10 +498,10 @@ public class JavEditor extends Application {
                 });
                 //Añadimos el nuevo tab a la lista de tabs y le añadimos las caracteristicas
 
-                tabs.add(numeroTab,tabNuevo);
-                tabs.get(numeroTab).setClosable(true);
-                tabs.get(numeroTab).setContent(scrll);
-                tabs.get(numeroTab).selectedProperty();
+                tabs.add(numberTabs,tabNuevo);
+                tabs.get(numberTabs).setClosable(true);
+                tabs.get(numberTabs).setContent(scrll);
+                tabs.get(numberTabs).selectedProperty();
 
 
                 //Preseleccionamos el nuevo tab creado
@@ -511,14 +511,14 @@ public class JavEditor extends Application {
                 //numeroTab si por el contrario sigue abierto, se añade en la posición numeroTab+1
                 //ya que en la primera posición de dicha lista se encontrara el tab por defecto "tab1"
                 if(_notAvailableTab1){
-                    tabPane.getTabs().add(numeroTab, tabs.get(numeroTab));
-                    lineas.add(numeroTab,tf);
-                    observablelists.add(numeroTab,l);
+                    tabPane.getTabs().add(numberTabs, tabs.get(numberTabs));
+                    lineas.add(numberTabs,tf);
+                    observablelists.add(numberTabs,l);
                 }else{
-                    tabPane.getTabs().add(numeroTab + 1, tabs.get(numeroTab));
-                    lineas.add(numeroTab+1,tf);
-                    observablelists.add(numeroTab+1,l);
-                    numeroTab++;
+                    tabPane.getTabs().add(numberTabs + 1, tabs.get(numberTabs));
+                    lineas.add(numberTabs+1,tf);
+                    observablelists.add(numberTabs+1,l);
+                    numberTabs++;
                 }
 
 
@@ -526,16 +526,16 @@ public class JavEditor extends Application {
                 //para después hacer un set y cambiar la dirección en el caso de que guardemos una nueva
                 //dirección o abramos otro archivo ya que con el add desplazamos en vez de reemplazar.
                 //Lo que alteraría el orden de las direcciones con los tabs
-                pathArchivoActual.add(numeroTab, " ");
+                pathArchivoActual.add(numberTabs, " ");
 
                 //Si abrimos una nueva pestaña como nuevo archivo 
                 if (!_isForOpen) {
                     TreeItem<String> item = new TreeItem<String>("Sin Titulo",new ImageView(new Image("Texto.gif")));
-                    items.getChildren().add(numeroTab, item);
+                    items.getChildren().add(numberTabs, item);
                 }
                 //Si tab1 ha sido cerrado incrementamos numeroTab al final
                 if(_notAvailableTab1){
-                    numeroTab++;
+                   numberTabs++;
                 }
             }
         });
@@ -584,7 +584,7 @@ public class JavEditor extends Application {
 
                         areas.remove(i);
                         tabs.remove(i);
-                        numeroTab--;
+                        numberTabs--;
                         break;
                     }
                 }
@@ -642,7 +642,7 @@ public class JavEditor extends Application {
                     pathArchivoActual.remove(0);
                 }
                 _notAvailableTab1 = true;
-                numeroTab = 0;
+                numberTabs = 0;
 
 
             }
@@ -997,10 +997,10 @@ public class JavEditor extends Application {
                                         File f = new File(pathProyectos.get(i));
                                         TreeItem<String> item = new TreeItem<String>(f.getName(),new ImageView( new Image("Texto.gif")));
                                         if(_notAvailableTab1){
-                                            items.getChildren().add(numeroTab - 1, item);
+                                            items.getChildren().add(numberTabs - 1, item);
                                         } else {
                                             a = a+1;
-                                            items.getChildren().add(numeroTab, item);
+                                            items.getChildren().add(numberTabs, item);
                                         }
                                         actualizarArchivo(f.getAbsolutePath(), f.getName());
                                         try {
